@@ -96,6 +96,9 @@
             background: var(--bg-card);
             border-radius: var(--radius-card);
         }
+        @media (max-width: 600px) {
+            .tag-item-large { padding: 0.4rem 1rem; font-size: 0.9rem; }
+        }
     </style>
 </head>
 <body>
@@ -170,7 +173,7 @@
                     const meta = article.meta;
                     return `
                         <a href="#" class="tag-resource-item"
-                           onclick="window.showArticleDetail('${escapeHtml(meta.title || '')}', '${escapeHtml(meta.date || '')}', '${encodeURIComponent(article.content)}', ${encodeURIComponent(JSON.stringify(meta))})">
+                           onclick="window.showArticleDetail('${escapeHtml(meta.title || '')}', '${escapeHtml(meta.date || '')}', '${encodeURIComponent(article.content)}', '${encodeURIComponent(JSON.stringify(meta))}')">
                             <div class="tag-resource-icon"><i class="fas fa-feather-alt"></i></div>
                             <div class="tag-resource-info">
                                 <h4>${escapeHtml(meta.title || '无标题')}</h4>
@@ -233,5 +236,4 @@
     });
 </script>
 </body>
-</html>
 </html>
