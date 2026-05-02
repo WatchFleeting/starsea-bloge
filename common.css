@@ -138,3 +138,42 @@ body{
 .tag-badge{
     display:inline-block; background:var(--primary-500); color:white; padding:2px 8px; border-radius:12px; font-size:0.7rem; margin-right:4px;
 }
+
+/* ========== 移动端核心优化 ========== */
+@media (max-width: 700px) {
+    .main-container {
+        margin-top: 80px !important;
+        padding: 0 1rem !important;
+    }
+    .site-title {
+        font-size: 1.2rem !important;
+    }
+    .site-title img {
+        height: 2.2rem !important;
+    }
+    .nav-links {
+        gap: 4px !important;
+    }
+    .nav-item-wrapper a {
+        font-size: 0.8rem !important;
+        padding: 6px 4px !important;
+    }
+    .nav-item-wrapper:not(#moreBtn):not(#playerNavItem) {
+        display: none;
+    }
+    #moreBtn {
+        display: flex !important;
+    }
+    .card, .wallpaper-card, .emoji-card, .article-card {
+        border-radius: 12px !important;
+    }
+    .wallpaper-grid, .emoji-grid, .articles-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    .btn, .download-btn, .control-btn {
+        min-height: var(--touch-target-size) !important;
+        min-width: var(--touch-target-size) !important;
+        font-size: 0.9rem !important;
+    }
+}
