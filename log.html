@@ -58,6 +58,9 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+        @media (max-width: 600px) {
+            .log-entry-title { font-size: 1.1rem; }
+        }
     </style>
 </head>
 <body>
@@ -80,7 +83,6 @@
                 container.innerHTML = '<div class="empty-state">暂无文章</div>';
                 return;
             }
-            // 保留标题，清空其余内容
             container.innerHTML = '<div class="log-title"><i class="fas fa-history"></i> 文章日志</div>';
             articles.forEach(article => {
                 const meta = article.meta;
