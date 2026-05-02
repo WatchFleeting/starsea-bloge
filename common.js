@@ -1,7 +1,12 @@
 /* ============================================
    公共脚本 —— 导航/播放器/文章/B站API/数据加载
    ============================================ */
-function escapeHtml(unsafe){ return unsafe.replace(/[&<>]/g,m=>m==='&'?'&amp;':m==='<'?'&lt;':m==='>'?'&gt;'); }
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
 
 /* 页首尾 & 播放器动态加载 */
 async function loadHeader(sel='body'){
