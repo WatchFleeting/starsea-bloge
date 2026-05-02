@@ -1,20 +1,26 @@
-<!-- 公共头部：鸿渚の灵质空间 -->
 <header class="top-bar" id="mainTopBar">
     <div class="logo-area">
         <a href="index.html" class="site-title">
-            <img src="img/logo.png" alt="logo"> 鸿渚の灵质空间
+            <img src="img/logo.png" alt="logo"> <span data-i18n="site_title">鸿渚の灵质空间</span>
         </a>
     </div>
     <nav class="nav-links" id="navLinks">
-        <div class="nav-item-wrapper"><a href="index.html">首页</a></div>
-        <div class="nav-item-wrapper"><a href="background.html">图片库</a></div>
-        <div class="nav-item-wrapper"><a href="emoji.html">表情包</a></div>
-        <div class="nav-item-wrapper"><a href="FriendURL.html">友链</a></div>
-        <div class="nav-item-wrapper"><a href="tags.html">标签</a></div>
-        <div class="nav-item-wrapper"><a href="log.html">日志</a></div>
+        <div class="nav-item-wrapper"><a href="index.html" data-i18n="home">首页</a></div>
+        <div class="nav-item-wrapper"><a href="background.html" data-i18n="image_library">图片库</a></div>
+        <div class="nav-item-wrapper"><a href="emoji.html" data-i18n="emoji_pack">表情包</a></div>
+        <div class="nav-item-wrapper"><a href="FriendURL.html" data-i18n="friends">友链</a></div>
+        <div class="nav-item-wrapper"><a href="tags.html" data-i18n="tags">标签</a></div>
+        <div class="nav-item-wrapper"><a href="log.html" data-i18n="log">日志</a></div>
         <div class="nav-item-wrapper nav-item-player" id="playerNavItem">
-            <a href="#" id="playerToggleBtn" data-tooltip-text="术术播放器">🎵 播放器</a>
+            <a href="#" id="playerToggleBtn" data-tooltip-text="术术播放器" data-i18n="player">🎵 播放器</a>
         </div>
-        <div class="nav-item-wrapper" id="moreBtn"><a href="#">更多 ▼</a></div>
+        <div class="nav-item-wrapper" id="moreBtn"><a href="#" data-i18n="more">更多 ▼</a></div>
+        <!-- 主题和语言切换按钮（桌面端） -->
+        <div class="nav-item-wrapper">
+            <a href="#" id="themeToggle" onclick="toggleTheme()" data-i18n="theme_dark">暗色</a>
+        </div>
+        <div class="nav-item-wrapper">
+            <a href="#" id="langToggle" onclick="toggleLanguage()" data-i18n="sw_lang">中文</a>
+        </div>
     </nav>
 </header>
