@@ -31,7 +31,87 @@ async function loadPlayer(sel='body'){
 /* 通用 JSON 加载 */
 async function loadJSON(url){ const r=await fetch(url); if(!r.ok)throw new Error(`无法加载 ${url}`); return await r.json(); }
 
-/* 导航交互 */
+/* ================= 主题 & 多语言 ================= */
+const SUPPORTED_LANGS = [
+    { code: 'zh', name: '中文' },
+    { code: 'en', name: 'English' },
+    { code: 'ja', name: '日本語' },
+    { code: 'ko', name: '한국어' }
+];
+
+let currentLang = localStorage.getItem('lang') || 'zh';
+let i18nData = null;
+
+async function loadLanguage(lang) {
+    try {
+        i18nData = await loadJSON(`lang/${lang}.json`);
+        applyTranslations();
+        document.documentElement.lang = lang;
+        localStorage.setItem('lang', lang);
+        currentLang = lang;
+        updateLangButton();
+    } catch(e) {
+        console.warn('语言文件加载失败', e);
+    }
+}
+
+function applyTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18nData && i18nData[key]) {
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                el.placeholder = i18nData[key];
+            } else {
+                el.textContent = i18nData[key];
+            }
+        }
+    });
+}
+
+function updateLangButton() {
+    const btn = document.getElementById('langToggle');
+    if (btn) {
+        const langObj = SUPPORTED_LANGS.find(l => l.code === currentLang);
+        btn.textContent = langObj ? langObj.name : currentLang;
+    }
+    // 同时更新移动端按钮
+    const btnMobile = document.getElementById('langToggleMobile');
+    if (btnMobile) {
+        const langObj = SUPPORTED_LANGS.find(l => l.code === currentLang);
+        btnMobile.textContent = langObj ? langObj.name : currentLang;
+    }
+}
+
+function toggleLanguage() {
+    const currentIndex = SUPPORTED_LANGS.findIndex(l => l.code === currentLang);
+    const nextIndex = (currentIndex + 1) % SUPPORTED_LANGS.length;
+    loadLanguage(SUPPORTED_LANGS[nextIndex].code);
+}
+
+function initTheme() {
+    const saved = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', saved);
+    updateThemeButton();
+}
+
+function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    updateThemeButton();
+}
+
+function updateThemeButton() {
+    const btn = document.getElementById('themeToggle');
+    const btnMobile = document.getElementById('themeToggleMobile');
+    const current = document.documentElement.getAttribute('data-theme');
+    const label = i18nData ? (current === 'dark' ? i18nData['theme_light'] : i18nData['theme_dark']) : (current === 'dark' ? '亮色' : '暗色');
+    if (btn) btn.textContent = label;
+    if (btnMobile) btnMobile.textContent = label;
+}
+
+/* ================= 导航交互 ================= */
 function initNavigation(){
     const tb=document.getElementById('mainTopBar');
     if(tb){
@@ -47,7 +127,16 @@ function initNavigation(){
     const mb=document.getElementById('moreBtn');
     if(mb){
         const dd=document.createElement('div'); dd.className='custom-dropdown';
-        dd.innerHTML=`<a href="background.html">图片库</a><a href="emoji.html">表情包</a><a href="proxy-status.html">代理监控</a><a href="https://afdian.com/a/lyxh-took" target="_blank">爱发电</a><a href="https://github.com/WatchFleeting" target="_blank">GitHub</a>`;
+        dd.innerHTML=`
+            <a href="background.html" data-i18n="image_library">图片库</a>
+            <a href="emoji.html" data-i18n="emoji_pack">表情包</a>
+            <a href="proxy-status.html" data-i18n="proxy_monitor">代理监控</a>
+            <a href="https://afdian.com/a/lyxh-took" target="_blank" data-i18n="afdian">爱发电</a>
+            <a href="https://github.com/WatchFleeting" target="_blank" data-i18n="github">GitHub</a>
+            <hr>
+            <a href="#" id="themeToggleMobile" onclick="toggleTheme()" data-i18n="theme_dark">暗色</a>
+            <a href="#" id="langToggleMobile" onclick="toggleLanguage()" data-i18n="sw_lang">中文</a>
+        `;
         document.body.appendChild(dd); let timer;
         mb.addEventListener('mouseenter',()=>{ clearTimeout(timer); const r=mb.getBoundingClientRect(); dd.style.left=Math.min(r.left,innerWidth-dd.offsetWidth-10)+'px'; dd.style.top=r.bottom+8+'px'; dd.classList.add('show'); });
         mb.addEventListener('mouseleave',()=>{ timer=setTimeout(()=>dd.classList.remove('show'),200); });
@@ -57,7 +146,6 @@ function initNavigation(){
     const bb=document.getElementById('backToTopBtn');
     if(bb){ addEventListener('scroll',()=>{ const s=scrollY>200; bb.style.opacity=s?'1':'0'; bb.style.visibility=s?'visible':'hidden'; }); bb.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'})); }
 }
-
 /* 播放器 */
 function initPlayer(){
     const p=document.getElementById('floatingPlayer'), f=document.getElementById('playerIframe'), PUR='Vocaloidplayer.html';
@@ -112,60 +200,32 @@ async function loadMarkdownArticle(path){
     }catch(e){ console.warn('文章加载失败',path,e); return null; }
 }
 
-// 获取完整文章列表（仅 articles 数组）
 async function getAllArticles(){
-    const idx = await loadArticleIndex();
-    const arts = [];
-    if (idx.articles) {
-        for (const p of idx.articles) {
-            const a = await loadMarkdownArticle(p);
-            if (a) arts.push(a);
-        }
-    }
-    arts.sort((a,b) => (b.meta.date || '').localeCompare(a.meta.date || ''));
-    return arts;
+    const idx=await loadArticleIndex();
+    const arts=[];
+    if(idx.articles) for(const p of idx.articles){ const a=await loadMarkdownArticle(p); if(a)arts.push(a); }
+    arts.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return arts;
 }
 
-// 获取工具卡片（cards 数组）
 async function getCards(){
-    const idx = await loadArticleIndex();
-    const cards = [];
-    if (idx.cards) {
-        for (const p of idx.cards) {
-            const a = await loadMarkdownArticle(p);
-            if (a) cards.push(a);
-        }
-    }
-    cards.sort((a,b) => (b.meta.date || '').localeCompare(a.meta.date || ''));
-    return cards;
+    const idx=await loadArticleIndex();
+    const cards=[];
+    if(idx.cards) for(const p of idx.cards){ const a=await loadMarkdownArticle(p); if(a)cards.push(a); }
+    cards.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return cards;
 }
 
-// 获取文件卡片（files 数组）
 async function getFiles(){
-    const idx = await loadArticleIndex();
-    const files = [];
-    if (idx.files) {
-        for (const p of idx.files) {
-            const a = await loadMarkdownArticle(p);
-            if (a) files.push(a);
-        }
-    }
-    files.sort((a,b) => (b.meta.date || '').localeCompare(a.meta.date || ''));
-    return files;
+    const idx=await loadArticleIndex();
+    const files=[];
+    if(idx.files) for(const p of idx.files){ const a=await loadMarkdownArticle(p); if(a)files.push(a); }
+    files.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return files;
 }
 
-// 合并全部内容（articles + cards + files），供日志、标签页使用
-async function getAllContent() {
-    const [articles, cards, files] = await Promise.all([
-        getAllArticles(),
-        getCards(),
-        getFiles()
-    ]);
-    const all = [...articles, ...cards, ...files];
-    all.sort((a, b) => (b.meta.date || '').localeCompare(a.meta.date || ''));
-    return all;
+async function getAllContent(){
+    const [articles,cards,files]=await Promise.all([getAllArticles(),getCards(),getFiles()]);
+    const all=[...articles,...cards,...files];
+    all.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return all;
 }
-
 /* ====================== B站公开API（多代理自动切换） ====================== */
 const CORS_PROXIES = [
     'https://api.allorigins.win/raw?url=',
@@ -222,7 +282,7 @@ async function fetchBilibiliFullProfile(uid){
     return { uid, ...info, ...rel, ...up, latestVideo: video };
 }
 
-/* 全局弹窗：显示文章详情（卡片点击后调用） */
+/* 全局弹窗 */
 function showArticleDetail(title, date, markdownContent, meta) {
     const exist = document.querySelector('.article-detail-overlay');
     if (exist) exist.remove();
@@ -270,9 +330,11 @@ function showArticleDetail(title, date, markdownContent, meta) {
 
 /* 全局初始化 */
 async function initSite(){
+    await loadLanguage(currentLang);
+    initTheme();
     await Promise.all([loadHeader(), loadFooter(), loadPlayer()]);
     initNavigation();
     initPlayer();
     initFavicon();
 }
-document.addEventListener('DOMContentLoaded',initSite);
+document.addEventListener('DOMContentLoaded', initSite);
