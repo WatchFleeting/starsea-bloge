@@ -14,7 +14,6 @@
             margin: 90px auto 60px;
             padding: 0 1.5rem;
         }
-
         .status-card {
             background: var(--bg-card);
             border-radius: var(--radius-card);
@@ -22,7 +21,6 @@
             border: 1px solid var(--border-light);
             box-shadow: var(--shadow-md);
         }
-
         .status-title {
             font-size: 1.8rem;
             font-weight: 700;
@@ -32,7 +30,6 @@
             align-items: center;
             gap: var(--space-sm);
         }
-
         .btn-refresh {
             display: inline-flex;
             align-items: center;
@@ -48,18 +45,15 @@
             transition: var(--transition);
             margin-bottom: var(--space-lg);
         }
-
         .btn-refresh:hover {
             background: var(--primary-600);
             transform: translateY(-2px);
         }
-
         .proxy-list {
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
-
         .proxy-item {
             background: var(--bg-page);
             border-radius: 12px;
@@ -71,11 +65,9 @@
             border: 1px solid var(--border-light);
             transition: var(--transition);
         }
-
         .proxy-item.testing {
             opacity: 0.7;
         }
-
         .proxy-status {
             width: 36px;
             height: 36px;
@@ -88,17 +80,14 @@
             background: #e9edf2;
             color: #5f6c80;
         }
-
         .proxy-status.success {
             background: #dcfce7;
             color: #16a34a;
         }
-
         .proxy-status.fail {
             background: #fee2e2;
             color: #dc2626;
         }
-
         .proxy-url {
             flex: 1;
             font-family: monospace;
@@ -107,7 +96,6 @@
             color: var(--text-title);
             min-width: 200px;
         }
-
         .proxy-detail {
             display: flex;
             align-items: center;
@@ -115,17 +103,14 @@
             font-size: 0.8rem;
             color: var(--text-muted);
         }
-
         .proxy-detail .latency {
             font-weight: 600;
             color: var(--primary-600);
         }
-
         .proxy-detail .name {
             font-weight: 500;
             color: var(--text-desc);
         }
-
         @media (max-width: 600px) {
             .proxy-item {
                 flex-direction: column;
@@ -159,18 +144,7 @@
 
 <script src="common.js"></script>
 <script>
-    // 与 common.js 保持同步的代理列表
-    const CORS_PROXIES = [
-        'https://api.allorigins.win/raw?url=',
-        'https://corsproxy.io/?',
-        'https://cors-anywhere.herokuapp.com/',
-        'https://cors.bridged.cc/',
-        'https://cors.eu.org/',
-        'https://api.codetabs.com/v1/proxy?quest=',
-        'https://proxy.cors.sh/',
-        'https://cors-proxy.htmldriven.com/?url='
-    ];
-
+    // 直接使用 common.js 中已定义的 CORS_PROXIES 数组
     const TEST_UID = '3493109964999279';
     const TARGET_URL = `https://api.bilibili.com/x/space/acc/info?mid=${TEST_UID}`;
 
@@ -230,7 +204,6 @@
 
     async function runTests() {
         renderLoading();
-        // 逐个测试，避免并发过多被限制
         for (let proxy of CORS_PROXIES) {
             const result = await testProxy(proxy, TARGET_URL);
             updateItem(proxy, result);
