@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>鸿渚の灵质空间 | 个人资源与技术博客</title>
+    <title>鸿渚の灵质空间</title>
     <meta name="description" content="鸿渚的个人分享页，提供壁纸、表情包、工具与原创文章。">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -255,7 +255,6 @@
             console.warn('个人信息加载失败', e);
         }
 
-        // 卡片渲染函数
         function renderArticle(article) {
             const meta = article.meta || {};
             const tagsHtml = meta.tags && meta.tags.length
@@ -288,7 +287,6 @@
             </div>`;
         }
 
-        // 绑定点击事件
         function bindDetailClick(container, selector, items) {
             container.querySelectorAll(selector).forEach((el, idx) => {
                 el.addEventListener('click', () => {
@@ -299,7 +297,6 @@
             });
         }
 
-        // 加载各区域内容
         try {
             const articles = await getAllArticles();
             const ac = document.getElementById('articlesContainer');
