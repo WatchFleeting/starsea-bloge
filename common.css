@@ -26,6 +26,23 @@
     --space-xl: 2rem;
     --touch-target-size: 44px;
 }
+
+/* 暗色主题变量覆盖 */
+[data-theme="dark"] {
+    --primary-400: #38bdf8;
+    --primary-500: #0ea5e9;
+    --primary-600: #0284c7;
+    --bg-page: #0f172a;
+    --bg-card: #1e293b;
+    --text-title: #f1f5f9;
+    --text-desc: #cbd5e1;
+    --text-muted: #94a3b8;
+    --border-light: #334155;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+    --shadow-hover: 0 12px 24px -8px rgba(14,165,233,0.2);
+}
+
 *,*::before,*::after{ margin:0; padding:0; box-sizing:border-box; }
 body{
     font-family:'Inter',sans-serif; background:var(--bg-page); color:var(--text-title);
@@ -38,6 +55,8 @@ body{
     opacity:0.08; animation:bgZoomIn 1.2s ease forwards;
 }
 @keyframes bgZoomIn{ 0%{ transform:scale(1.3); opacity:0; } 100%{ transform:scale(1); opacity:0.08; } }
+
+/* ---------- 导航栏 ---------- */
 .top-bar{
     position:fixed; top:0; left:0; width:100%; background:rgba(255,255,255,0.85);
     backdrop-filter:blur(16px); border-bottom:2px solid var(--primary-500);
@@ -51,12 +70,15 @@ body{
     text-decoration:none; display:flex; align-items:center; gap:8px;
 }
 .site-title img{ height:3rem; }
-.nav-links{ display:flex; gap:clamp(4px,2vw,24px); align-items:center; }
+.nav-links{ display:flex; gap:clamp(4px,2vw,20px); align-items:center; }
 .nav-item-wrapper a{
     text-decoration:none; font-weight:600; font-size:0.95rem; color:var(--text-title);
     padding-bottom:4px; border-bottom:2px solid transparent; transition:var(--transition);
+    white-space: nowrap;
 }
 .nav-item-wrapper a:hover{ color:var(--primary-500); border-bottom-color:var(--primary-500); }
+
+/* 悬浮导航岛 */
 @media(min-width:701px){
     .top-bar.island-mode{
         top:12px; left:12px; width:calc(100% - 24px); height:56px; padding:0 28px;
@@ -67,30 +89,29 @@ body{
     .top-bar.island-mode .site-title img{ height:2.6rem; }
     body.island-active{ margin-top:90px; }
 }
-/* ---------- 修复桌面端导航错位 ---------- */
-/* 屏幕宽度 701px ~ 1000px 时，隐藏部分低频导航项 */
-@media (min-width:701px) and (max-width:1000px) {
-    /* 按顺序隐藏第4(友链)、第5(标签)、第6(日志) */
-    .nav-links .nav-item-wrapper:nth-child(4),
-    .nav-links .nav-item-wrapper:nth-child(5),
-    .nav-links .nav-item-wrapper:nth-child(6) {
-        display: none;
-    }
-    .nav-links {
-        gap: clamp(2px, 1vw, 12px);
-    }
-    .site-title {
-        font-size: 1.3rem;
-    }
-    .site-title img {
-        height: 2.4rem !important;
-    }
-}
-/* ---------------------------------------- */
+
+/* 移动端：仅保留首页、图片库、表情包、更多、播放器，隐藏主题和语言切换按钮 */
 @media(max-width:700px){
     .nav-item-wrapper.nav-item-player,.nav-item-wrapper.nav-item-wallpaper,
-    .nav-item-wrapper.nav-item-emoji,.nav-item-wrapper.nav-item-bili,.nav-item-wrapper.nav-item-github{ display:none; }
+    .nav-item-wrapper.nav-item-emoji,.nav-item-wrapper.nav-item-bili,
+    .nav-item-wrapper.nav-item-github{ display:none; }
+    /* 隐藏主题和语言切换按钮（在“更多”菜单中会出现） */
+    #themeToggle, #langToggle { display: none; }
+    .site-title { font-size: 1.2rem !important; }
+    .site-title img { height: 2.2rem !important; }
+    .nav-links { gap: 4px !important; }
+    .nav-item-wrapper a { font-size: 0.8rem !important; padding: 6px 4px !important; }
 }
+
+/* 小屏桌面（701~1000px）隐藏主题/语言按钮以节省空间，用户可通过更多菜单切换 */
+@media (min-width:701px) and (max-width:1000px) {
+    #themeToggle, #langToggle { display: none; }
+    .nav-links { gap: clamp(2px, 1vw, 10px); }
+    .site-title { font-size: 1.3rem; }
+    .site-title img { height: 2.4rem !important; }
+}
+
+/* ---------- 通用卡片 ---------- */
 .card{
     background:var(--bg-card); border:1px solid var(--border-light);
     border-radius:var(--radius-card); box-shadow:var(--shadow-sm); transition:var(--transition);
@@ -104,6 +125,8 @@ body{
 .btn:hover{ background:var(--primary-500); border-color:var(--primary-500); color:white; }
 .btn-primary{ background:var(--primary-500); color:white; }
 .btn-primary:hover{ background:var(--primary-600); }
+
+/* 悬浮播放器 */
 .floating-player{
     position:fixed; width:540px; height:360px; background:#111827;
     border:1px solid var(--primary-500); box-shadow:0 8px 30px rgba(6,182,212,0.3);
@@ -118,12 +141,14 @@ body{
 .player-titlebar .player-title{ color:var(--primary-400); font-size:0.85rem; }
 .win-btn{ background:none; border:none; color:var(--primary-400); cursor:pointer; }
 .win-btn.close:hover{ background:#ef4444; color:white; }
+
 .btn-tooltip{
     position:fixed; background:rgba(0,0,0,0.85); color:white; font-size:12px;
     padding:5px 10px; border-left:2px solid var(--primary-500); z-index:10001;
     white-space:nowrap; opacity:0; transform:translateY(5px); transition:opacity 0.2s,transform 0.2s; pointer-events:none;
 }
 .btn-tooltip.show{ opacity:1; transform:translateY(0); }
+
 .custom-dropdown{
     position:fixed; background:rgba(255,255,255,0.95); backdrop-filter:blur(16px);
     border:1px solid var(--primary-500); border-radius:12px; z-index:10001;
@@ -136,6 +161,8 @@ body{
     border-radius:8px; font-weight:500;
 }
 .custom-dropdown a:hover{ background:var(--bg-page); color:var(--primary-600); }
+
+/* 文章弹窗 */
 .article-detail-overlay{
     position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0);
     z-index:20000; display:flex; align-items:center; justify-content:center;
@@ -153,36 +180,19 @@ body{
     position:absolute; top:12px; right:16px; font-size:1.8rem; color:var(--text-title);
     cursor:pointer; background:none; border:none;
 }
+
+/* 加载/错误状态 */
 .loading-skeleton{ color:var(--text-muted); background:var(--bg-card); padding:12px; border-left:3px solid var(--primary-500); }
 .error-text{ color:#e05a5a; background:#fff5f5; padding:12px; border-left:3px solid #e05a5a; }
 .tag-badge{
     display:inline-block; background:var(--primary-500); color:white; padding:2px 8px; border-radius:12px; font-size:0.7rem; margin-right:4px;
 }
 
-/* ========== 移动端核心优化 ========== */
+/* ========== 移动端全局优化 ========== */
 @media (max-width: 700px) {
     .main-container {
         margin-top: 80px !important;
         padding: 0 1rem !important;
-    }
-    .site-title {
-        font-size: 1.2rem !important;
-    }
-    .site-title img {
-        height: 2.2rem !important;
-    }
-    .nav-links {
-        gap: 4px !important;
-    }
-    .nav-item-wrapper a {
-        font-size: 0.8rem !important;
-        padding: 6px 4px !important;
-    }
-    .nav-item-wrapper:not(#moreBtn):not(#playerNavItem) {
-        display: none;
-    }
-    #moreBtn {
-        display: flex !important;
     }
     .card, .wallpaper-card, .emoji-card, .article-card {
         border-radius: 12px !important;
