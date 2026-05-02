@@ -111,9 +111,59 @@ async function loadMarkdownArticle(path){
         return {meta:{title:'无标题'},content:t};
     }catch(e){ console.warn('文章加载失败',path,e); return null; }
 }
+
+// 获取完整文章列表（仅 articles 数组）
 async function getAllArticles(){
-    const idx=await loadArticleIndex(); const arts=[]; if(idx.articles) for(const p of idx.articles){ const a=await loadMarkdownArticle(p); if(a)arts.push(a); }
-    arts.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return arts;
+    const idx = await loadArticleIndex();
+    const arts = [];
+    if (idx.articles) {
+        for (const p of idx.articles) {
+            const a = await loadMarkdownArticle(p);
+            if (a) arts.push(a);
+        }
+    }
+    arts.sort((a,b) => (b.meta.date || '').localeCompare(a.meta.date || ''));
+    return arts;
+}
+
+// 获取工具卡片（cards 数组）
+async function getCards(){
+    const idx = await loadArticleIndex();
+    const cards = [];
+    if (idx.cards) {
+        for (const p of idx.cards) {
+            const a = await loadMarkdownArticle(p);
+            if (a) cards.push(a);
+        }
+    }
+    cards.sort((a,b) => (b.meta.date || '').localeCompare(a.meta.date || ''));
+    return cards;
+}
+
+// 获取文件卡片（files 数组）
+async function getFiles(){
+    const idx = await loadArticleIndex();
+    const files = [];
+    if (idx.files) {
+        for (const p of idx.files) {
+            const a = await loadMarkdownArticle(p);
+            if (a) files.push(a);
+        }
+    }
+    files.sort((a,b) => (b.meta.date || '').localeCompare(a.meta.date || ''));
+    return files;
+}
+
+// 合并全部内容（articles + cards + files），供日志、标签页使用
+async function getAllContent() {
+    const [articles, cards, files] = await Promise.all([
+        getAllArticles(),
+        getCards(),
+        getFiles()
+    ]);
+    const all = [...articles, ...cards, ...files];
+    all.sort((a, b) => (b.meta.date || '').localeCompare(a.meta.date || ''));
+    return all;
 }
 
 /* ====================== B站公开API（多代理自动切换） ====================== */
@@ -170,6 +220,52 @@ async function fetchBilibiliLatestVideo(uid){
 async function fetchBilibiliFullProfile(uid){
     const [info,rel,up,video]=await Promise.all([fetchBilibiliUserInfo(uid),fetchBilibiliRelationStat(uid),fetchBilibiliUpstat(uid),fetchBilibiliLatestVideo(uid)]);
     return { uid, ...info, ...rel, ...up, latestVideo: video };
+}
+
+/* 全局弹窗：显示文章详情（卡片点击后调用） */
+function showArticleDetail(title, date, markdownContent, meta) {
+    const exist = document.querySelector('.article-detail-overlay');
+    if (exist) exist.remove();
+    const overlay = document.createElement('div');
+    overlay.className = 'article-detail-overlay';
+    let html = markdownContent
+        .replace(/### (.*)/g, '<h3>$1</h3>')
+        .replace(/## (.*)/g, '<h2>$1</h2>')
+        .replace(/# (.*)/g, '<h1>$1</h1>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
+        .replace(/\n/g, '<br>');
+
+    let metaInfo = '';
+    if (meta) {
+        if (meta.author) metaInfo += `<span style="margin-right:1rem;">✍️ ${escapeHtml(meta.author)}</span>`;
+        if (meta.readTime) metaInfo += `<span style="margin-right:1rem;">⏱️ ${escapeHtml(meta.readTime)}</span>`;
+        if (meta.tags && meta.tags.length) {
+            metaInfo += `<div style="margin-top:0.5rem;">${meta.tags.map(tag => `<span class="tag-badge">#${escapeHtml(tag)}</span>`).join('')}</div>`;
+        }
+    }
+
+    overlay.innerHTML = `
+        <div class="article-detail-box">
+            <button class="article-detail-close">&times;</button>
+            <h2>${escapeHtml(title)}</h2>
+            <small style="color: var(--text-muted);">${escapeHtml(date)}</small>
+            <div style="margin-top:0.5rem; color: var(--text-muted);">${metaInfo}</div>
+            <div style="margin-top:1rem; line-height:1.7;">${html}</div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector('.article-detail-close').onclick = () => {
+        overlay.classList.remove('active');
+        setTimeout(() => overlay.remove(), 300);
+    };
+    overlay.addEventListener('click', e => {
+        if (e.target === overlay) {
+            overlay.classList.remove('active');
+            setTimeout(() => overlay.remove(), 300);
+        }
+    });
+    requestAnimationFrame(() => overlay.classList.add('active'));
 }
 
 /* 全局初始化 */
