@@ -116,28 +116,49 @@ async function getAllArticles(){
     arts.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return arts;
 }
 
-/* B站公开API */
+/* ====================== B站公开API（多代理自动切换） ====================== */
+const CORS_PROXIES = [
+    'https://corsproxy.io/?',                    // 主代理，速度快
+    'https://api.allorigins.win/raw?url=',       // 备用1
+    'https://cors-anywhere.herokuapp.com/'       // 备用2（可能需要先访问启用）
+];
+
+async function fetchWithRetry(targetUrl) {
+    for (let proxy of CORS_PROXIES) {
+        try {
+            const fullUrl = proxy + encodeURIComponent(targetUrl);
+            const resp = await fetch(fullUrl);
+            if (resp.ok) return resp;
+        } catch (e) {}
+    }
+    throw new Error('所有 CORS 代理均不可用');
+}
+
 async function fetchBilibiliUserInfo(uid){
     try{
-        const r=await fetch(`https://api.bilibili.com/x/space/acc/info?mid=${uid}`); const j=await r.json();
+        const r=await fetchWithRetry(`https://api.bilibili.com/x/space/acc/info?mid=${uid}`);
+        const j=await r.json();
         if(j.code===0&&j.data) return { name:j.data.name||'', avatar:j.data.face||'', sign:j.data.sign||'', level:j.data.level||0, birthday:j.data.birthday||'', sex:j.data.sex||'' };
     }catch(e){ console.warn('用户信息获取失败',e); } return { name:'', avatar:'', sign:'', level:0, birthday:'', sex:'' };
 }
 async function fetchBilibiliRelationStat(uid){
     try{
-        const r=await fetch(`https://api.bilibili.com/x/relation/stat?vmid=${uid}`); const j=await r.json();
+        const r=await fetchWithRetry(`https://api.bilibili.com/x/relation/stat?vmid=${uid}`);
+        const j=await r.json();
         if(j.code===0&&j.data) return { follower:j.data.follower||0, following:j.data.following||0 };
     }catch(e){ console.warn('关系获取失败',e); } return { follower:'--', following:'--' };
 }
 async function fetchBilibiliUpstat(uid){
     try{
-        const r=await fetch(`https://api.bilibili.com/x/space/upstat?mid=${uid}`); const j=await r.json();
+        const r=await fetchWithRetry(`https://api.bilibili.com/x/space/upstat?mid=${uid}`);
+        const j=await r.json();
         if(j.code===0&&j.data) return { likes:j.data.likes||0, archiveView:(j.data.archive&&j.data.archive.view)||0, articleView:(j.data.article&&j.data.article.view)||0 };
     }catch(e){ console.warn('UP数据获取失败',e); } return { likes:'--', archiveView:'--', articleView:'--' };
 }
 async function fetchBilibiliLatestVideo(uid){
     try{
-        const r=await fetch(`https://api.bilibili.com/x/space/wbi/arc/search?mid=${uid}&ps=1&pn=1`); const j=await r.json();
+        const r=await fetchWithRetry(`https://api.bilibili.com/x/space/wbi/arc/search?mid=${uid}&ps=1&pn=1`);
+        const j=await r.json();
         if(j.code===0&&j.data&&j.data.list&&j.data.list.length>0){ const v=j.data.list[0]; return { bvid:v.bvid||'', title:v.title||'', pic:v.pic||'', play:v.play||0, created:v.created||0 }; }
     }catch(e){ console.warn('最新视频获取失败',e); } return null;
 }
