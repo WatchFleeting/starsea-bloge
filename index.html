@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>鸿渚の灵质空间</title>
-    <meta name="description" content="鸿渚的个人分享页，提供壁纸、表情包、工具与原创文章。">
+    <title data-i18n="site_title">鸿渚の灵质空间</title>
+    <meta name="description" content="鸿渚的个人分享页，提供图片、表情包、工具与原创文章。">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="common.css">
@@ -141,25 +141,25 @@
         <div class="profile-card" id="profileCard">
             <img class="profile-avatar" id="profileAvatar" src="img/logo.png" alt="鸿渚头像">
             <h2 id="profileName">鸿渚</h2>
-            <p class="profile-bio" id="profileBio">资源分享 · 技术爱好者</p>
+            <p class="profile-bio" id="profileBio" data-i18n="bio_default">资源分享 · 技术爱好者</p>
             <span class="profile-level" id="profileLevel">LV 0</span>
             <div class="profile-extras" id="profileExtras"></div>
             <div class="stats-row">
                 <div class="stat-item">
                     <div class="stat-value" id="statFollowers">--</div>
-                    <div class="stat-label">粉丝</div>
+                    <div class="stat-label" data-i18n="followers">粉丝</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value" id="statFollowing">--</div>
-                    <div class="stat-label">关注</div>
+                    <div class="stat-label" data-i18n="following">关注</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value" id="statLikes">--</div>
-                    <div class="stat-label">获赞</div>
+                    <div class="stat-label" data-i18n="likes">获赞</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value" id="statViews">--</div>
-                    <div class="stat-label">播放量</div>
+                    <div class="stat-label" data-i18n="views">播放量</div>
                 </div>
             </div>
             <div class="social-links">
@@ -175,7 +175,7 @@
             </div>
         </div>
         <div class="latest-video-card" id="latestVideoCard" style="display:none;">
-            <h4 style="margin-bottom:0.5rem;font-size:0.8rem;color:var(--text-muted);">
+            <h4 style="margin-bottom:0.5rem;font-size:0.8rem;color:var(--text-muted);" data-i18n="latest_video">
                 <i class="fas fa-video"></i> 最新视频
             </h4>
             <a id="latestVideoLink" href="#" target="_blank" style="text-decoration:none;color:inherit;">
@@ -187,19 +187,19 @@
     </aside>
 
     <section class="content">
-        <h2 class="section-title"><i class="fas fa-feather-alt"></i> 最新文章</h2>
+        <h2 class="section-title"><i class="fas fa-feather-alt"></i> <span data-i18n="latest_articles">最新文章</span></h2>
         <div id="articlesContainer" class="articles-grid">
-            <div class="loading-skeleton">文章加载中...</div>
+            <div class="loading-skeleton" data-i18n="loading_articles">文章加载中...</div>
         </div>
 
-        <h2 class="section-title"><i class="fas fa-tools"></i> 工具 & 资源</h2>
+        <h2 class="section-title"><i class="fas fa-tools"></i> <span data-i18n="tools_resources">工具 & 资源</span></h2>
         <div id="cardsContainer" class="cards-grid">
-            <div class="loading-skeleton">卡片加载中...</div>
+            <div class="loading-skeleton" data-i18n="loading_cards">卡片加载中...</div>
         </div>
 
-        <h2 class="section-title"><i class="fas fa-file-alt"></i> 相关文件</h2>
+        <h2 class="section-title"><i class="fas fa-file-alt"></i> <span data-i18n="related_files">相关文件</span></h2>
         <div id="filesContainer" class="files-grid">
-            <div class="loading-skeleton">文件加载中...</div>
+            <div class="loading-skeleton" data-i18n="loading_files">文件加载中...</div>
         </div>
     </section>
 </main>
@@ -207,6 +207,9 @@
 <script src="common.js"></script>
 <script>
     window.addEventListener('load', async () => {
+        // 等待 i18n 加载完成
+        while (!i18nData) await new Promise(resolve => setTimeout(resolve, 50));
+
         const HONGZHU_UID = '3493109964999279';
         try {
             const profile = await fetchBilibiliFullProfile(HONGZHU_UID);
@@ -255,6 +258,7 @@
             console.warn('个人信息加载失败', e);
         }
 
+        // 渲染函数
         function renderArticle(article) {
             const meta = article.meta || {};
             const tagsHtml = meta.tags && meta.tags.length
@@ -300,35 +304,35 @@
         try {
             const articles = await getAllArticles();
             const ac = document.getElementById('articlesContainer');
-            if (!articles.length) ac.innerHTML = '<div class="empty-state">暂无文章</div>';
+            if (!articles.length) ac.innerHTML = `<div class="empty-state">${i18nData['no_articles']}</div>`;
             else {
                 ac.innerHTML = articles.map(renderArticle).join('');
                 bindDetailClick(ac, '.article-card', articles);
             }
         } catch(e) {
-            document.getElementById('articlesContainer').innerHTML = `<div class="error-text">文章加载失败：${escapeHtml(e.message)}</div>`;
+            document.getElementById('articlesContainer').innerHTML = `<div class="error-text">${i18nData['load_failed']}: ${escapeHtml(e.message)}</div>`;
         }
         try {
             const cards = await getCards();
             const cc = document.getElementById('cardsContainer');
-            if (!cards.length) cc.innerHTML = '<div class="empty-state">暂无卡片</div>';
+            if (!cards.length) cc.innerHTML = `<div class="empty-state">${i18nData['no_cards']}</div>`;
             else {
                 cc.innerHTML = cards.map(renderCard).join('');
                 bindDetailClick(cc, '.card-item', cards);
             }
         } catch(e) {
-            document.getElementById('cardsContainer').innerHTML = `<div class="error-text">卡片加载失败：${escapeHtml(e.message)}</div>`;
+            document.getElementById('cardsContainer').innerHTML = `<div class="error-text">${i18nData['load_failed']}: ${escapeHtml(e.message)}</div>`;
         }
         try {
             const files = await getFiles();
             const fc = document.getElementById('filesContainer');
-            if (!files.length) fc.innerHTML = '<div class="empty-state">暂无文件</div>';
+            if (!files.length) fc.innerHTML = `<div class="empty-state">${i18nData['no_files']}</div>`;
             else {
                 fc.innerHTML = files.map(renderFile).join('');
                 bindDetailClick(fc, '.file-item', files);
             }
         } catch(e) {
-            document.getElementById('filesContainer').innerHTML = `<div class="error-text">文件加载失败：${escapeHtml(e.message)}</div>`;
+            document.getElementById('filesContainer').innerHTML = `<div class="error-text">${i18nData['load_failed']}: ${escapeHtml(e.message)}</div>`;
         }
     });
 </script>
