@@ -118,9 +118,14 @@ async function getAllArticles(){
 
 /* ====================== B站公开API（多代理自动切换） ====================== */
 const CORS_PROXIES = [
-    'https://corsproxy.io/?',                    // 主代理，速度快
-    'https://api.allorigins.win/raw?url=',       // 备用1
-    'https://cors-anywhere.herokuapp.com/'       // 备用2（可能需要先访问启用）
+    'https://api.allorigins.win/raw?url=',
+    'https://corsproxy.io/?',
+    'https://cors-anywhere.herokuapp.com/',
+    'https://cors.bridged.cc/',
+    'https://cors.eu.org/',
+    'https://api.codetabs.com/v1/proxy?quest=',
+    'https://proxy.cors.sh/',
+    'https://cors-proxy.htmldriven.com/?url='
 ];
 
 async function fetchWithRetry(targetUrl) {
