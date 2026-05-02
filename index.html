@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>鸿渚の灵质空间 | 个人资源与技术博客</title>
-    <meta name="description" content="鸿渚的个人分享页，提供壁纸、表情包、工具与原创文章。数据来自B站开放平台API。">
+    <meta name="description" content="鸿渚的个人分享页，提供壁纸、表情包、工具与原创文章。">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="common.css">
@@ -79,16 +79,29 @@
         .latest-video-card h4 { font-size: 0.95rem; color: var(--text-title); margin-bottom: 0.3rem; }
         .latest-video-card .video-meta { font-size: 0.75rem; color: var(--text-muted); }
 
-        .articles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
-        .article-card {
+        .articles-grid, .cards-grid, .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .article-card, .card-item, .file-item {
             background: var(--bg-card); border: 1px solid var(--border-light);
             border-radius: var(--radius-card); padding: 1.5rem;
             box-shadow: var(--shadow-sm); transition: var(--transition); cursor: pointer;
         }
-        .article-card:hover { border-color: var(--primary-400); box-shadow: var(--shadow-hover); transform: translateY(-2px); }
-        .article-date { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; }
-        .article-title { font-size: 1.2rem; font-weight: 700; color: var(--text-title); margin-bottom: 0.5rem; }
-        .article-summary { color: var(--text-desc); font-size: 0.9rem; line-height: 1.5; }
+        .article-card:hover, .card-item:hover, .file-item:hover {
+            border-color: var(--primary-400); box-shadow: var(--shadow-hover); transform: translateY(-2px);
+        }
+        .article-date, .card-date, .file-date {
+            font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;
+        }
+        .article-title, .card-title, .file-title {
+            font-size: 1.2rem; font-weight: 700; color: var(--text-title); margin-bottom: 0.5rem;
+        }
+        .article-summary, .card-summary, .file-summary {
+            color: var(--text-desc); font-size: 0.9rem; line-height: 1.5;
+        }
         .article-meta { font-size: 0.8rem; color: var(--primary-500); margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
         .tag-badge {
             display: inline-block;
@@ -96,19 +109,27 @@
             padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; margin-right: 4px;
         }
 
+        .section-title {
+            margin-bottom: 1.2rem;
+            font-size: 1.4rem;
+            color: var(--primary-600);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
         @media (max-width: 850px) {
             .main-container { flex-direction: column; }
             .sidebar { width: 100%; position: relative; top: 0; }
         }
-        /* 新增移动端优化 */
         @media (max-width: 600px) {
             .profile-card { padding: 1.2rem !important; }
             .profile-avatar { width: 70px !important; height: 70px !important; }
             .profile-card h2 { font-size: 1.3rem !important; }
             .stats-row .stat-value { font-size: 1rem !important; }
             .social-links a { padding: 8px !important; font-size: 0.8rem !important; }
-            .article-title { font-size: 1rem !important; }
-            .article-summary { font-size: 0.85rem !important; }
+            .article-title, .card-title, .file-title { font-size: 1rem !important; }
+            .article-summary, .card-summary, .file-summary { font-size: 0.85rem !important; }
         }
     </style>
 </head>
@@ -118,9 +139,7 @@
 <main class="main-container">
     <aside class="sidebar">
         <div class="profile-card" id="profileCard">
-            <img class="profile-avatar" id="profileAvatar"
-                 src="img/logo.png"
-                 alt="鸿渚头像">
+            <img class="profile-avatar" id="profileAvatar" src="img/logo.png" alt="鸿渚头像">
             <h2 id="profileName">鸿渚</h2>
             <p class="profile-bio" id="profileBio">资源分享 · 技术爱好者</p>
             <span class="profile-level" id="profileLevel">LV 0</span>
@@ -168,11 +187,19 @@
     </aside>
 
     <section class="content">
-        <h2 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-600);">
-            <i class="fas fa-feather-alt"></i> 最新文章
-        </h2>
+        <h2 class="section-title"><i class="fas fa-feather-alt"></i> 最新文章</h2>
         <div id="articlesContainer" class="articles-grid">
             <div class="loading-skeleton">文章加载中...</div>
+        </div>
+
+        <h2 class="section-title"><i class="fas fa-tools"></i> 工具 & 资源</h2>
+        <div id="cardsContainer" class="cards-grid">
+            <div class="loading-skeleton">卡片加载中...</div>
+        </div>
+
+        <h2 class="section-title"><i class="fas fa-file-alt"></i> 相关文件</h2>
+        <div id="filesContainer" class="files-grid">
+            <div class="loading-skeleton">文件加载中...</div>
         </div>
     </section>
 </main>
@@ -181,15 +208,12 @@
 <script>
     window.addEventListener('load', async () => {
         const HONGZHU_UID = '3493109964999279';
-
         try {
             const profile = await fetchBilibiliFullProfile(HONGZHU_UID);
             if (profile.avatar) {
                 const avatarImg = document.getElementById('profileAvatar');
                 avatarImg.src = profile.avatar;
-                avatarImg.onerror = function() {
-                    this.src = 'img/logo.png';
-                };
+                avatarImg.onerror = function() { this.src = 'img/logo.png'; };
             }
             if (profile.name) document.getElementById('profileName').textContent = profile.name;
             if (profile.sign) {
@@ -231,96 +255,85 @@
             console.warn('个人信息加载失败', e);
         }
 
-        const articlesContainer = document.getElementById('articlesContainer');
+        // 卡片渲染函数
+        function renderArticle(article) {
+            const meta = article.meta || {};
+            const tagsHtml = meta.tags && meta.tags.length
+                ? meta.tags.map(tag => `<span class="tag-badge">#${escapeHtml(tag)}</span>`).join('')
+                : '';
+            const authorHtml = meta.author ? `<span class="article-meta">✍️ ${escapeHtml(meta.author)}</span>` : '';
+            const readTimeHtml = meta.readTime ? `<span class="article-meta">· ${escapeHtml(meta.readTime)}</span>` : '';
+            return `<article class="article-card" data-title="${escapeHtml(meta.title||'')}" data-date="${escapeHtml(meta.date||'')}" data-content="${encodeURIComponent(article.content)}" data-meta='${encodeURIComponent(JSON.stringify(meta))}'>
+                <div class="article-date">${escapeHtml(meta.date||'')}</div>
+                <h3 class="article-title">${escapeHtml(meta.title||'无标题')}</h3>
+                <div class="article-meta">${authorHtml} ${readTimeHtml}</div>
+                <p class="article-summary">${escapeHtml(meta.summary||'')}</p>
+                ${tagsHtml}
+            </article>`;
+        }
+        function renderCard(card) {
+            const meta = card.meta || {};
+            return `<div class="card-item" data-title="${escapeHtml(meta.title||'')}" data-date="${escapeHtml(meta.date||'')}" data-content="${encodeURIComponent(card.content)}" data-meta='${encodeURIComponent(JSON.stringify(meta))}'>
+                <div class="card-date">${escapeHtml(meta.date||'')}</div>
+                <h3 class="card-title">${escapeHtml(meta.title||'无标题')}</h3>
+                <p class="card-summary">${escapeHtml(meta.summary||'')}</p>
+            </div>`;
+        }
+        function renderFile(file) {
+            const meta = file.meta || {};
+            return `<div class="file-item" data-title="${escapeHtml(meta.title||'')}" data-date="${escapeHtml(meta.date||'')}" data-content="${encodeURIComponent(file.content)}" data-meta='${encodeURIComponent(JSON.stringify(meta))}'>
+                <div class="file-date">${escapeHtml(meta.date||'')}</div>
+                <h3 class="file-title">${escapeHtml(meta.title||'无标题')}</h3>
+                <p class="file-summary">${escapeHtml(meta.summary||'')}</p>
+            </div>`;
+        }
+
+        // 绑定点击事件
+        function bindDetailClick(container, selector, items) {
+            container.querySelectorAll(selector).forEach((el, idx) => {
+                el.addEventListener('click', () => {
+                    const item = items[idx];
+                    const meta = item.meta || {};
+                    showArticleDetail(meta.title||'', meta.date||'', decodeURIComponent(el.dataset.content), meta);
+                });
+            });
+        }
+
+        // 加载各区域内容
         try {
             const articles = await getAllArticles();
-            if (!articles.length) {
-                articlesContainer.innerHTML = '<div class="error-text">暂无文章</div>';
-            } else {
-                articlesContainer.innerHTML = articles.map(article => {
-                    const meta = article.meta || {};
-                    const tagsHtml = meta.tags && meta.tags.length ? meta.tags.map(tag => `<span class="tag-badge">#${escapeHtml(tag)}</span>`).join('') : '';
-                    const authorHtml = meta.author ? `<span class="article-meta">✍️ ${escapeHtml(meta.author)}</span>` : '';
-                    const readTimeHtml = meta.readTime ? `<span class="article-meta">· ${escapeHtml(meta.readTime)}</span>` : '';
-                    return `
-                        <article class="article-card"
-                                 data-title="${escapeHtml(meta.title || '')}"
-                                 data-date="${escapeHtml(meta.date || '')}"
-                                 data-content="${encodeURIComponent(article.content)}"
-                                 data-meta='${encodeURIComponent(JSON.stringify(meta))}'>
-                            <div class="article-date">${escapeHtml(meta.date || '')}</div>
-                            <h3 class="article-title">${escapeHtml(meta.title || '无标题')}</h3>
-                            <div class="article-meta" style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.3rem;">
-                                ${authorHtml} ${readTimeHtml}
-                            </div>
-                            <p class="article-summary">${escapeHtml(meta.summary || '')}</p>
-                            ${tagsHtml ? `<div style="margin-top:0.5rem;">${tagsHtml}</div>` : ''}
-                        </article>
-                    `;
-                }).join('');
-
-                articlesContainer.querySelectorAll('.article-card').forEach((card, idx) => {
-                    card.addEventListener('click', () => {
-                        const article = articles[idx];
-                        const meta = article.meta || {};
-                        showArticleDetail(
-                            meta.title || '',
-                            meta.date || '',
-                            decodeURIComponent(card.dataset.content),
-                            meta
-                        );
-                    });
-                });
+            const ac = document.getElementById('articlesContainer');
+            if (!articles.length) ac.innerHTML = '<div class="empty-state">暂无文章</div>';
+            else {
+                ac.innerHTML = articles.map(renderArticle).join('');
+                bindDetailClick(ac, '.article-card', articles);
             }
-        } catch (e) {
-            articlesContainer.innerHTML = `<div class="error-text">加载文章失败: ${e.message}</div>`;
+        } catch(e) {
+            document.getElementById('articlesContainer').innerHTML = `<div class="error-text">文章加载失败：${escapeHtml(e.message)}</div>`;
+        }
+        try {
+            const cards = await getCards();
+            const cc = document.getElementById('cardsContainer');
+            if (!cards.length) cc.innerHTML = '<div class="empty-state">暂无卡片</div>';
+            else {
+                cc.innerHTML = cards.map(renderCard).join('');
+                bindDetailClick(cc, '.card-item', cards);
+            }
+        } catch(e) {
+            document.getElementById('cardsContainer').innerHTML = `<div class="error-text">卡片加载失败：${escapeHtml(e.message)}</div>`;
+        }
+        try {
+            const files = await getFiles();
+            const fc = document.getElementById('filesContainer');
+            if (!files.length) fc.innerHTML = '<div class="empty-state">暂无文件</div>';
+            else {
+                fc.innerHTML = files.map(renderFile).join('');
+                bindDetailClick(fc, '.file-item', files);
+            }
+        } catch(e) {
+            document.getElementById('filesContainer').innerHTML = `<div class="error-text">文件加载失败：${escapeHtml(e.message)}</div>`;
         }
     });
-
-    function showArticleDetail(title, date, markdownContent, meta) {
-        const exist = document.querySelector('.article-detail-overlay');
-        if (exist) exist.remove();
-        const overlay = document.createElement('div');
-        overlay.className = 'article-detail-overlay';
-        let html = markdownContent
-            .replace(/### (.*)/g, '<h3>$1</h3>')
-            .replace(/## (.*)/g, '<h2>$1</h2>')
-            .replace(/# (.*)/g, '<h1>$1</h1>')
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
-            .replace(/\n/g, '<br>');
-
-        let metaInfo = '';
-        if (meta) {
-            if (meta.author) metaInfo += `<span style="margin-right:1rem;">✍️ ${escapeHtml(meta.author)}</span>`;
-            if (meta.readTime) metaInfo += `<span style="margin-right:1rem;">⏱️ ${escapeHtml(meta.readTime)}</span>`;
-            if (meta.tags && meta.tags.length) {
-                metaInfo += `<div style="margin-top:0.5rem;">${meta.tags.map(tag => `<span class="tag-badge">#${escapeHtml(tag)}</span>`).join('')}</div>`;
-            }
-        }
-
-        overlay.innerHTML = `
-            <div class="article-detail-box">
-                <button class="article-detail-close">&times;</button>
-                <h2>${escapeHtml(title)}</h2>
-                <small style="color: var(--text-muted);">${escapeHtml(date)}</small>
-                <div style="margin-top:0.5rem; color: var(--text-muted);">${metaInfo}</div>
-                <div style="margin-top:1rem; line-height:1.7;">${html}</div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-        overlay.querySelector('.article-detail-close').onclick = () => {
-            overlay.classList.remove('active');
-            setTimeout(() => overlay.remove(), 300);
-        };
-        overlay.addEventListener('click', e => {
-            if (e.target === overlay) {
-                overlay.classList.remove('active');
-                setTimeout(() => overlay.remove(), 300);
-            }
-        });
-        requestAnimationFrame(() => overlay.classList.add('active'));
-    }
 </script>
 </body>
 </html>
