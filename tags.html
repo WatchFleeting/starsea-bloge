@@ -71,6 +71,7 @@
             text-decoration: none;
             color: inherit;
             transition: var(--transition);
+            cursor: pointer;
         }
         .tag-resource-item:hover {
             background: var(--bg-page);
@@ -125,20 +126,20 @@
         const selectedTagSpan = document.getElementById('selectedTagName');
         const resourcesListDiv = document.getElementById('tagResourcesList');
 
-        let allArticles = [];
+        let allContent = [];
         let tagMap = new Map();
 
         try {
-            allArticles = await getAllArticles();
+            allContent = await getAllContent();
 
-            allArticles.forEach(article => {
-                const tags = article.meta.tags || [];
+            allContent.forEach(item => {
+                const tags = item.meta.tags || [];
                 if (Array.isArray(tags)) {
                     tags.forEach(tag => {
                         const normalized = tag.trim().replace(/^#/, '');
                         if (!normalized) return;
                         if (!tagMap.has(normalized)) tagMap.set(normalized, []);
-                        tagMap.get(normalized).push(article);
+                        tagMap.get(normalized).push(item);
                     });
                 }
             });
@@ -164,75 +165,33 @@
         }
 
         function showTagDetail(tag) {
-            const articles = tagMap.get(tag) || [];
+            const items = tagMap.get(tag) || [];
             selectedTagSpan.textContent = tag;
-            if (articles.length === 0) {
-                resourcesListDiv.innerHTML = '<p class="empty-state">该标签下暂无文章</p>';
+            if (items.length === 0) {
+                resourcesListDiv.innerHTML = '<p class="empty-state">该标签下暂无内容</p>';
             } else {
-                resourcesListDiv.innerHTML = articles.map(article => {
-                    const meta = article.meta;
+                resourcesListDiv.innerHTML = items.map(item => {
+                    const meta = item.meta;
                     return `
-                        <a href="#" class="tag-resource-item"
-                           onclick="window.showArticleDetail('${escapeHtml(meta.title || '')}', '${escapeHtml(meta.date || '')}', '${encodeURIComponent(article.content)}', '${encodeURIComponent(JSON.stringify(meta))}')">
+                        <div class="tag-resource-item" data-title="${escapeHtml(meta.title||'')}" data-date="${escapeHtml(meta.date||'')}" data-content="${encodeURIComponent(item.content)}" data-meta='${encodeURIComponent(JSON.stringify(meta))}'>
                             <div class="tag-resource-icon"><i class="fas fa-feather-alt"></i></div>
                             <div class="tag-resource-info">
                                 <h4>${escapeHtml(meta.title || '无标题')}</h4>
                                 <p>${meta.summary ? escapeHtml(meta.summary).substring(0, 80) : ''}</p>
                             </div>
-                        </a>
+                        </div>
                     `;
                 }).join('');
+                resourcesListDiv.querySelectorAll('.tag-resource-item').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const meta = JSON.parse(decodeURIComponent(el.dataset.meta));
+                        showArticleDetail(el.dataset.title, el.dataset.date, decodeURIComponent(el.dataset.content), meta);
+                    });
+                });
             }
             tagDetailDiv.style.display = 'block';
             tagDetailDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-
-        window.showArticleDetail = function(title, date, encodedContent, encodedMeta) {
-            const markdownContent = decodeURIComponent(encodedContent);
-            const meta = JSON.parse(decodeURIComponent(encodedMeta));
-            const exist = document.querySelector('.article-detail-overlay');
-            if (exist) exist.remove();
-            const overlay = document.createElement('div');
-            overlay.className = 'article-detail-overlay';
-            let html = markdownContent
-                .replace(/### (.*)/g, '<h3>$1</h3>')
-                .replace(/## (.*)/g, '<h2>$1</h2>')
-                .replace(/# (.*)/g, '<h1>$1</h1>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
-                .replace(/\n/g, '<br>');
-
-            let metaInfo = '';
-            if (meta) {
-                if (meta.author) metaInfo += `<span style="margin-right:1rem;">✍️ ${escapeHtml(meta.author)}</span>`;
-                if (meta.readTime) metaInfo += `<span style="margin-right:1rem;">⏱️ ${escapeHtml(meta.readTime)}</span>`;
-                if (meta.tags && meta.tags.length) {
-                    metaInfo += `<div style="margin-top:0.5rem;">${meta.tags.map(tag => `<span class="tag-badge">#${escapeHtml(tag)}</span>`).join('')}</div>`;
-                }
-            }
-
-            overlay.innerHTML = `
-                <div class="article-detail-box">
-                    <button class="article-detail-close">&times;</button>
-                    <h2>${escapeHtml(title)}</h2>
-                    <small style="color: var(--text-muted);">${escapeHtml(date)}</small>
-                    <div style="margin-top:0.5rem; color: var(--text-muted);">${metaInfo}</div>
-                    <div style="margin-top:1rem; line-height:1.7;">${html}</div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-            overlay.querySelector('.article-detail-close').onclick = () => {
-                overlay.classList.remove('active');
-                setTimeout(() => overlay.remove(), 300);
-            };
-            overlay.addEventListener('click', e => {
-                if (e.target === overlay) {
-                    overlay.classList.remove('active');
-                    setTimeout(() => overlay.remove(), 300);
-                }
-            });
-            requestAnimationFrame(() => overlay.classList.add('active'));
-        };
     });
 </script>
 </body>
