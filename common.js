@@ -47,7 +47,7 @@ function initNavigation(){
     const mb=document.getElementById('moreBtn');
     if(mb){
         const dd=document.createElement('div'); dd.className='custom-dropdown';
-        dd.innerHTML=`<a href="background.html">图片库</a><a href="emoji.html">表情包</a><a href="https://afdian.com/a/lyxh-took" target="_blank">爱发电</a><a href="https://github.com/WatchFleeting" target="_blank">GitHub</a>`;
+        dd.innerHTML=`<a href="background.html">图片库</a><a href="emoji.html">表情包</a><a href="proxy-status.html">代理监控</a><a href="https://afdian.com/a/lyxh-took" target="_blank">爱发电</a><a href="https://github.com/WatchFleeting" target="_blank">GitHub</a>`;
         document.body.appendChild(dd); let timer;
         mb.addEventListener('mouseenter',()=>{ clearTimeout(timer); const r=mb.getBoundingClientRect(); dd.style.left=Math.min(r.left,innerWidth-dd.offsetWidth-10)+'px'; dd.style.top=r.bottom+8+'px'; dd.classList.add('show'); });
         mb.addEventListener('mouseleave',()=>{ timer=setTimeout(()=>dd.classList.remove('show'),200); });
