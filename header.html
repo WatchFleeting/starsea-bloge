@@ -13,12 +13,14 @@
         <div class="nav-item-wrapper nav-item-player" id="playerNavItem">
             <a href="#" id="playerToggleBtn" data-tooltip-text="术术播放器" data-i18n="player">🎵 播放器</a>
         </div>
-        <!-- 主题和语言切换按钮（桌面端保留） -->
+        <!-- 主题切换按钮 -->
         <div class="nav-item-wrapper">
             <a href="#" id="themeToggle" onclick="toggleTheme()" data-i18n="theme_dark">暗色</a>
         </div>
-        <div class="nav-item-wrapper">
-            <a href="#" id="langToggle" onclick="toggleLanguage()" data-i18n="sw_lang">中文</a>
+        <!-- 语言切换下拉菜单 -->
+        <div class="nav-item-wrapper" id="langDropdownContainer">
+            <a href="#" id="langToggleBtn">中文</a>
+            <div class="lang-dropdown" id="langDropdown"></div>
         </div>
     </nav>
 </header>
