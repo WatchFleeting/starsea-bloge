@@ -116,7 +116,7 @@
 
 <script src="common.js"></script>
 <script>
-    (async function() {
+    document.addEventListener('DOMContentLoaded', async () => {
         const tagCloudDiv = document.getElementById('tagCloudContainer');
         const tagDetailDiv = document.getElementById('tagDetailContainer');
         const selectedTagSpan = document.getElementById('selectedTagName');
@@ -230,7 +230,8 @@
             });
             requestAnimationFrame(() => overlay.classList.add('active'));
         };
-    })();
+    });
 </script>
 </body>
+</html>
 </html>
