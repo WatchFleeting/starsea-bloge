@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代理状态监控 · 鸿渚の灵质空间</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="common.css">
+    <link rel="icon" id="dynamic-favicon" href="img/ico_1.ico">
+    <style>
+        .main-container {
+            max-width: 900px;
+            margin: 90px auto 60px;
+            padding: 0 1.5rem;
+        }
+
+        .status-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: var(--space-xl);
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-md);
+        }
+
+        .status-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-600);
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .btn-refresh {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--primary-500);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: var(--space-lg);
+        }
+
+        .btn-refresh:hover {
+            background: var(--primary-600);
+            transform: translateY(-2px);
+        }
+
+        .proxy-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .proxy-item {
+            background: var(--bg-page);
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            border: 1px solid var(--border-light);
+            transition: var(--transition);
+        }
+
+        .proxy-item.testing {
+            opacity: 0.7;
+        }
+
+        .proxy-status {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            background: #e9edf2;
+            color: #5f6c80;
+        }
+
+        .proxy-status.success {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .proxy-status.fail {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .proxy-url {
+            flex: 1;
+            font-family: monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+            color: var(--text-title);
+            min-width: 200px;
+        }
+
+        .proxy-detail {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .proxy-detail .latency {
+            font-weight: 600;
+            color: var(--primary-600);
+        }
+
+        .proxy-detail .name {
+            font-weight: 500;
+            color: var(--text-desc);
+        }
+
+        @media (max-width: 600px) {
+            .proxy-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .proxy-url {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="bg-layer"></div>
+
+<main class="main-container">
+    <div class="status-card">
+        <h1 class="status-title">
+            <i class="fas fa-heartbeat"></i> CORS 代理监控
+        </h1>
+        <button class="btn-refresh" id="refreshBtn">
+            <i class="fas fa-sync-alt"></i> 重新检测
+        </button>
+        <div id="proxyList" class="proxy-list">
+            <div class="proxy-item testing">
+                <span class="proxy-status"><i class="fas fa-spinner fa-pulse"></i></span>
+                <span class="proxy-url">正在加载...</span>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="common.js"></script>
+<script>
+    // 与 common.js 保持同步的代理列表
+    const CORS_PROXIES = [
+        'https://api.allorigins.win/raw?url=',
+        'https://corsproxy.io/?',
+        'https://cors-anywhere.herokuapp.com/',
+        'https://cors.bridged.cc/',
+        'https://cors.eu.org/',
+        'https://api.codetabs.com/v1/proxy?quest=',
+        'https://proxy.cors.sh/',
+        'https://cors-proxy.htmldriven.com/?url='
+    ];
+
+    const TEST_UID = '3493109964999279';
+    const TARGET_URL = `https://api.bilibili.com/x/space/acc/info?mid=${TEST_UID}`;
+
+    const proxyListEl = document.getElementById('proxyList');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    function renderLoading() {
+        proxyListEl.innerHTML = CORS_PROXIES.map(proxy => `
+            <div class="proxy-item testing" id="proxy-${escapeHtml(proxy)}">
+                <span class="proxy-status"><i class="fas fa-spinner fa-pulse"></i></span>
+                <span class="proxy-url">${escapeHtml(proxy)}</span>
+                <div class="proxy-detail">⏳ 检测中...</div>
+            </div>
+        `).join('');
+    }
+
+    async function testProxy(proxy, targetUrl) {
+        const start = performance.now();
+        try {
+            const fullUrl = proxy + encodeURIComponent(targetUrl);
+            const resp = await fetch(fullUrl);
+            const end = performance.now();
+            const latency = Math.round(end - start);
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const json = await resp.json();
+            if (json.code === 0) {
+                return { success: true, latency, name: json.data.name };
+            } else {
+                throw new Error(`API code ${json.code}`);
+            }
+        } catch (e) {
+            const end = performance.now();
+            return { success: false, latency: Math.round(end - start), error: e.message };
+        }
+    }
+
+    function updateItem(proxy, result) {
+        const item = document.getElementById(`proxy-${escapeHtml(proxy)}`);
+        if (!item) return;
+        item.classList.remove('testing');
+        const statusEl = item.querySelector('.proxy-status');
+        const detailEl = item.querySelector('.proxy-detail');
+
+        if (result.success) {
+            statusEl.className = 'proxy-status success';
+            statusEl.innerHTML = '<i class="fas fa-check-circle"></i>';
+            detailEl.innerHTML = `
+                <span class="latency">${result.latency}ms</span>
+                <span class="name">👤 ${escapeHtml(result.name)}</span>
+            `;
+        } else {
+            statusEl.className = 'proxy-status fail';
+            statusEl.innerHTML = '<i class="fas fa-times-circle"></i>';
+            detailEl.innerHTML = `<span>❌ ${escapeHtml(result.error || '请求失败')}</span>`;
+        }
+    }
+
+    async function runTests() {
+        renderLoading();
+        // 逐个测试，避免并发过多被限制
+        for (let proxy of CORS_PROXIES) {
+            const result = await testProxy(proxy, TARGET_URL);
+            updateItem(proxy, result);
+        }
+    }
+
+    refreshBtn.addEventListener('click', runTests);
+    window.addEventListener('load', runTests);
+</script>
+</body>
+</html>
