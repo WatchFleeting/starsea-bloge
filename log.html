@@ -2,11 +2,12 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>鸿渚の灵质空间 | 个人资源与技术博客</title>
-    <meta name="description" content="鸿渚的个人分享页，提供壁纸、表情包、工具与原创文章。">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章日志 · 鸿渚の灵质空间</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="common.css">
     <link rel="icon" id="dynamic-favicon" href="img/ico_1.ico">
     <style>
@@ -14,122 +15,51 @@
             max-width: 1200px;
             margin: 90px auto 60px;
             padding: 0 1.5rem;
-            display: flex;
-            gap: 2rem;
-            align-items: flex-start;
         }
-        .sidebar { width: 300px; flex-shrink: 0; position: sticky; top: 100px; }
-        .content { flex: 1; min-width: 0; }
-
-        .profile-card {
+        .log-list {
             background: var(--bg-card);
-            border: 1px solid var(--border-light);
             border-radius: var(--radius-card);
-            padding: 2rem;
-            text-align: center;
+            padding: var(--space-xl);
+            border: 1px solid var(--border-light);
             box-shadow: var(--shadow-md);
         }
-        .profile-avatar {
-            width: 100px; height: 100px;
-            border-radius: 50%;
-            border: 3px solid var(--primary-500);
-            margin-bottom: 1rem;
-            object-fit: cover;
-        }
-        .profile-card h2 { font-size: 1.6rem; margin-bottom: 0.3rem; color: var(--primary-600); }
-        .profile-bio { color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.9rem; }
-        .profile-level {
-            display: inline-block;
-            background: var(--primary-500); color: white;
-            padding: 2px 12px; border-radius: 20px;
-            font-size: 0.75rem; font-weight: 600; margin-bottom: 1rem;
-        }
-        .profile-extras { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; }
-
-        .stats-row {
-            display: flex; justify-content: space-around; gap: 0.5rem;
-            padding: 1rem 0; margin: 1rem 0;
-            border-top: 1px solid var(--border-light);
-            border-bottom: 1px solid var(--border-light);
-        }
-        .stat-item { text-align: center; }
-        .stat-value { font-size: 1.3rem; font-weight: 700; color: var(--primary-600); }
-        .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
-
-        .social-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 1.5rem; }
-        .social-links a {
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            padding: 10px; border-radius: 40px; font-weight: 500; font-size: 0.9rem;
-            text-decoration: none; transition: var(--transition); color: white; border: none;
-        }
-        .btn-bilibili { background: #fb7299; }
-        .btn-bilibili:hover { background: #ff85ad; }
-        .btn-github { background: #24292f; }
-        .btn-github:hover { background: #3a3f47; }
-        .btn-afdian { background: #946ce6; }
-        .btn-afdian:hover { background: #b47ef0; }
-
-        .latest-video-card {
-            background: var(--bg-card); border: 1px solid var(--border-light);
-            border-radius: var(--radius-card); padding: 1rem; margin-top: 1.5rem;
-            box-shadow: var(--shadow-sm); transition: var(--transition);
-        }
-        .latest-video-card:hover { border-color: var(--primary-400); box-shadow: var(--shadow-hover); transform: translateY(-2px); }
-        .latest-video-card img { width: 100%; border-radius: 12px; margin-bottom: 0.5rem; }
-        .latest-video-card h4 { font-size: 0.95rem; color: var(--text-title); margin-bottom: 0.3rem; }
-        .latest-video-card .video-meta { font-size: 0.75rem; color: var(--text-muted); }
-
-        .articles-grid, .cards-grid, .files-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .article-card, .card-item, .file-item {
-            background: var(--bg-card); border: 1px solid var(--border-light);
-            border-radius: var(--radius-card); padding: 1.5rem;
-            box-shadow: var(--shadow-sm); transition: var(--transition); cursor: pointer;
-        }
-        .article-card:hover, .card-item:hover, .file-item:hover {
-            border-color: var(--primary-400); box-shadow: var(--shadow-hover); transform: translateY(-2px);
-        }
-        .article-date, .card-date, .file-date {
-            font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;
-        }
-        .article-title, .card-title, .file-title {
-            font-size: 1.2rem; font-weight: 700; color: var(--text-title); margin-bottom: 0.5rem;
-        }
-        .article-summary, .card-summary, .file-summary {
-            color: var(--text-desc); font-size: 0.9rem; line-height: 1.5;
-        }
-        .article-meta { font-size: 0.8rem; color: var(--primary-500); margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-        .tag-badge {
-            display: inline-block;
-            background: var(--primary-500); color: white;
-            padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; margin-right: 4px;
-        }
-
-        .section-title {
-            margin-bottom: 1.2rem;
-            font-size: 1.4rem;
+        .log-title {
+            font-size: 1.8rem;
+            font-weight: 700;
             color: var(--primary-600);
+            margin-bottom: var(--space-lg);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: var(--space-sm);
         }
-
-        @media (max-width: 850px) {
-            .main-container { flex-direction: column; }
-            .sidebar { width: 100%; position: relative; top: 0; }
+        .log-entry {
+            padding: var(--space-md) 0;
+            border-bottom: 1px dashed var(--border-light);
+        }
+        .log-entry:last-child { border-bottom: none; }
+        .log-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.2rem;
+        }
+        .log-entry-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-title);
+            margin-bottom: 0.3rem;
+            cursor: pointer;
+        }
+        .log-entry-title:hover { color: var(--primary-500); }
+        .log-summary {
+            color: var(--text-desc);
+            font-size: 0.9rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
         @media (max-width: 600px) {
-            .profile-card { padding: 1.2rem !important; }
-            .profile-avatar { width: 70px !important; height: 70px !important; }
-            .profile-card h2 { font-size: 1.3rem !important; }
-            .stats-row .stat-value { font-size: 1rem !important; }
-            .social-links a { padding: 8px !important; font-size: 0.8rem !important; }
-            .article-title, .card-title, .file-title { font-size: 1rem !important; }
-            .article-summary, .card-summary, .file-summary { font-size: 0.85rem !important; }
+            .log-entry-title { font-size: 1.1rem; }
         }
     </style>
 </head>
@@ -137,201 +67,39 @@
 <div class="bg-layer"></div>
 
 <main class="main-container">
-    <aside class="sidebar">
-        <div class="profile-card" id="profileCard">
-            <img class="profile-avatar" id="profileAvatar" src="img/logo.png" alt="鸿渚头像">
-            <h2 id="profileName">鸿渚</h2>
-            <p class="profile-bio" id="profileBio">资源分享 · 技术爱好者</p>
-            <span class="profile-level" id="profileLevel">LV 0</span>
-            <div class="profile-extras" id="profileExtras"></div>
-            <div class="stats-row">
-                <div class="stat-item">
-                    <div class="stat-value" id="statFollowers">--</div>
-                    <div class="stat-label">粉丝</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="statFollowing">--</div>
-                    <div class="stat-label">关注</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="statLikes">--</div>
-                    <div class="stat-label">获赞</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="statViews">--</div>
-                    <div class="stat-label">播放量</div>
-                </div>
-            </div>
-            <div class="social-links">
-                <a href="https://space.bilibili.com/3493109964999279" target="_blank" class="btn-bilibili">
-                    <i class="fab fa-bilibili"></i> B站
-                </a>
-                <a href="https://github.com/WatchFleeting" target="_blank" class="btn-github">
-                    <i class="fab fa-github"></i> GitHub
-                </a>
-                <a href="https://afdian.com/a/lyxh-took" target="_blank" class="btn-afdian" style="grid-column: span 2;">
-                    <i class="fas fa-bolt"></i> 爱发电赞助
-                </a>
-            </div>
-        </div>
-        <div class="latest-video-card" id="latestVideoCard" style="display:none;">
-            <h4 style="margin-bottom:0.5rem;font-size:0.8rem;color:var(--text-muted);">
-                <i class="fas fa-video"></i> 最新视频
-            </h4>
-            <a id="latestVideoLink" href="#" target="_blank" style="text-decoration:none;color:inherit;">
-                <img id="latestVideoPic" src="" alt="" style="width:100%;border-radius:12px;">
-                <h4 id="latestVideoTitle" style="font-size:0.9rem;color:var(--text-title);"></h4>
-                <span class="video-meta" id="latestVideoMeta"></span>
-            </a>
-        </div>
-    </aside>
-
-    <section class="content">
-        <h2 class="section-title"><i class="fas fa-feather-alt"></i> 最新文章</h2>
-        <div id="articlesContainer" class="articles-grid">
-            <div class="loading-skeleton">文章加载中...</div>
-        </div>
-
-        <h2 class="section-title"><i class="fas fa-tools"></i> 工具 & 资源</h2>
-        <div id="cardsContainer" class="cards-grid">
-            <div class="loading-skeleton">卡片加载中...</div>
-        </div>
-
-        <h2 class="section-title"><i class="fas fa-file-alt"></i> 相关文件</h2>
-        <div id="filesContainer" class="files-grid">
-            <div class="loading-skeleton">文件加载中...</div>
-        </div>
-    </section>
+    <div class="log-list" id="logList">
+        <div class="log-title"><i class="fas fa-history"></i> 文章日志</div>
+        <div class="loading"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>
+    </div>
 </main>
 
 <script src="common.js"></script>
 <script>
-    window.addEventListener('load', async () => {
-        const HONGZHU_UID = '3493109964999279';
+    document.addEventListener('DOMContentLoaded', async () => {
+        const container = document.getElementById('logList');
         try {
-            const profile = await fetchBilibiliFullProfile(HONGZHU_UID);
-            if (profile.avatar) {
-                const avatarImg = document.getElementById('profileAvatar');
-                avatarImg.src = profile.avatar;
-                avatarImg.onerror = function() { this.src = 'img/logo.png'; };
+            const allContent = await getAllContent();
+            if (!allContent.length) {
+                container.innerHTML = '<div class="empty-state">暂无内容</div>';
+                return;
             }
-            if (profile.name) document.getElementById('profileName').textContent = profile.name;
-            if (profile.sign) {
-                const bioEl = document.getElementById('profileBio');
-                bioEl.textContent = profile.sign.length > 40 ? profile.sign.slice(0, 40) + '...' : profile.sign;
-            }
-            if (profile.level && profile.level > 0) {
-                document.getElementById('profileLevel').textContent = 'LV ' + profile.level;
-            }
-            if (profile.birthday || profile.sex) {
-                const extras = document.getElementById('profileExtras');
-                const parts = [];
-                if (profile.birthday) parts.push('🎂 ' + profile.birthday);
-                if (profile.sex) parts.push(profile.sex === '男' ? '♂' : profile.sex === '女' ? '♀' : '');
-                extras.textContent = parts.join(' · ');
-            }
-
-            function formatNumber(num) {
-                if (typeof num === 'number' && num >= 10000) return (num / 10000).toFixed(1) + '万';
-                return String(num);
-            }
-            document.getElementById('statFollowers').textContent = formatNumber(profile.follower);
-            document.getElementById('statFollowing').textContent = formatNumber(profile.following);
-            document.getElementById('statLikes').textContent = formatNumber(profile.likes);
-            document.getElementById('statViews').textContent = formatNumber(profile.archiveView);
-
-            if (profile.latestVideo) {
-                const v = profile.latestVideo;
-                const card = document.getElementById('latestVideoCard');
-                card.style.display = 'block';
-                document.getElementById('latestVideoLink').href = 'https://www.bilibili.com/video/' + v.bvid;
-                document.getElementById('latestVideoPic').src = v.pic;
-                document.getElementById('latestVideoTitle').textContent = v.title.length > 20 ? v.title.slice(0, 20) + '...' : v.title;
-                const created = new Date(v.created * 1000);
-                const playCount = v.play >= 10000 ? (v.play / 10000).toFixed(1) + '万播放' : v.play + '播放';
-                document.getElementById('latestVideoMeta').textContent = playCount + ' · ' + created.toLocaleDateString('zh-CN');
-            }
-        } catch (e) {
-            console.warn('个人信息加载失败', e);
-        }
-
-        // 卡片渲染函数
-        function renderArticle(article) {
-            const meta = article.meta || {};
-            const tagsHtml = meta.tags && meta.tags.length
-                ? meta.tags.map(tag => `<span class="tag-badge">#${escapeHtml(tag)}</span>`).join('')
-                : '';
-            const authorHtml = meta.author ? `<span class="article-meta">✍️ ${escapeHtml(meta.author)}</span>` : '';
-            const readTimeHtml = meta.readTime ? `<span class="article-meta">· ${escapeHtml(meta.readTime)}</span>` : '';
-            return `<article class="article-card" data-title="${escapeHtml(meta.title||'')}" data-date="${escapeHtml(meta.date||'')}" data-content="${encodeURIComponent(article.content)}" data-meta='${encodeURIComponent(JSON.stringify(meta))}'>
-                <div class="article-date">${escapeHtml(meta.date||'')}</div>
-                <h3 class="article-title">${escapeHtml(meta.title||'无标题')}</h3>
-                <div class="article-meta">${authorHtml} ${readTimeHtml}</div>
-                <p class="article-summary">${escapeHtml(meta.summary||'')}</p>
-                ${tagsHtml}
-            </article>`;
-        }
-        function renderCard(card) {
-            const meta = card.meta || {};
-            return `<div class="card-item" data-title="${escapeHtml(meta.title||'')}" data-date="${escapeHtml(meta.date||'')}" data-content="${encodeURIComponent(card.content)}" data-meta='${encodeURIComponent(JSON.stringify(meta))}'>
-                <div class="card-date">${escapeHtml(meta.date||'')}</div>
-                <h3 class="card-title">${escapeHtml(meta.title||'无标题')}</h3>
-                <p class="card-summary">${escapeHtml(meta.summary||'')}</p>
-            </div>`;
-        }
-        function renderFile(file) {
-            const meta = file.meta || {};
-            return `<div class="file-item" data-title="${escapeHtml(meta.title||'')}" data-date="${escapeHtml(meta.date||'')}" data-content="${encodeURIComponent(file.content)}" data-meta='${encodeURIComponent(JSON.stringify(meta))}'>
-                <div class="file-date">${escapeHtml(meta.date||'')}</div>
-                <h3 class="file-title">${escapeHtml(meta.title||'无标题')}</h3>
-                <p class="file-summary">${escapeHtml(meta.summary||'')}</p>
-            </div>`;
-        }
-
-        // 绑定点击事件
-        function bindDetailClick(container, selector, items) {
-            container.querySelectorAll(selector).forEach((el, idx) => {
-                el.addEventListener('click', () => {
-                    const item = items[idx];
-                    const meta = item.meta || {};
-                    showArticleDetail(meta.title||'', meta.date||'', decodeURIComponent(el.dataset.content), meta);
+            container.innerHTML = '<div class="log-title"><i class="fas fa-history"></i> 文章日志</div>';
+            allContent.forEach(item => {
+                const meta = item.meta;
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                entry.innerHTML = `
+                    <div class="log-date">${escapeHtml(meta.date || '')}</div>
+                    <div class="log-entry-title">${escapeHtml(meta.title || '无标题')}</div>
+                    <div class="log-summary">${escapeHtml(meta.summary || '')}</div>
+                `;
+                entry.addEventListener('click', () => {
+                    showArticleDetail(meta.title, meta.date, item.content, meta);
                 });
+                container.appendChild(entry);
             });
-        }
-
-        // 加载各区域内容
-        try {
-            const articles = await getAllArticles();
-            const ac = document.getElementById('articlesContainer');
-            if (!articles.length) ac.innerHTML = '<div class="empty-state">暂无文章</div>';
-            else {
-                ac.innerHTML = articles.map(renderArticle).join('');
-                bindDetailClick(ac, '.article-card', articles);
-            }
-        } catch(e) {
-            document.getElementById('articlesContainer').innerHTML = `<div class="error-text">文章加载失败：${escapeHtml(e.message)}</div>`;
-        }
-        try {
-            const cards = await getCards();
-            const cc = document.getElementById('cardsContainer');
-            if (!cards.length) cc.innerHTML = '<div class="empty-state">暂无卡片</div>';
-            else {
-                cc.innerHTML = cards.map(renderCard).join('');
-                bindDetailClick(cc, '.card-item', cards);
-            }
-        } catch(e) {
-            document.getElementById('cardsContainer').innerHTML = `<div class="error-text">卡片加载失败：${escapeHtml(e.message)}</div>`;
-        }
-        try {
-            const files = await getFiles();
-            const fc = document.getElementById('filesContainer');
-            if (!files.length) fc.innerHTML = '<div class="empty-state">暂无文件</div>';
-            else {
-                fc.innerHTML = files.map(renderFile).join('');
-                bindDetailClick(fc, '.file-item', files);
-            }
-        } catch(e) {
-            document.getElementById('filesContainer').innerHTML = `<div class="error-text">文件加载失败：${escapeHtml(e.message)}</div>`;
+        } catch (e) {
+            container.innerHTML = `<div class="error-state">加载失败：${escapeHtml(e.message)}</div>`;
         }
     });
 </script>
