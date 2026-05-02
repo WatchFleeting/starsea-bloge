@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>标签浏览 · 鸿渚の灵质空间</title>
+    <meta name="description" content="按标签浏览文章">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="common.css">
+    <link rel="icon" id="dynamic-favicon" href="img/ico_1.ico">
+    <style>
+        .main-container {
+            max-width: 1200px;
+            margin: 90px auto 60px;
+            padding: 0 1.5rem;
+        }
+        .tag-cloud-large {
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: var(--space-xl);
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-md);
+            margin-bottom: var(--space-xl);
+        }
+        .tag-item-large {
+            display: inline-block;
+            background: var(--bg-page);
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-size: 1rem;
+            color: var(--text-desc);
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            margin: 0.3rem 0.3rem;
+        }
+        .tag-item-large:hover {
+            background: var(--primary-500);
+            color: white;
+            border-color: var(--primary-500);
+            transform: scale(1.05);
+        }
+        .tag-detail {
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: var(--space-xl);
+            border: 1px solid var(--border-light);
+        }
+        .tag-detail h2 {
+            font-size: 1.5rem;
+            color: var(--primary-600);
+            margin-bottom: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        .tag-resources {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+        .tag-resource-item {
+            display: flex;
+            align-items: center;
+            padding: var(--space-md);
+            border-bottom: 1px dashed var(--border-light);
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition);
+        }
+        .tag-resource-item:hover {
+            background: var(--bg-page);
+            border-radius: var(--radius-card);
+        }
+        .tag-resource-item:last-child { border-bottom: none; }
+        .tag-resource-icon {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, var(--primary-400), var(--secondary-400));
+            display: flex; align-items: center; justify-content: center;
+            color: white; margin-right: var(--space-md);
+        }
+        .tag-resource-info { flex: 1; }
+        .tag-resource-info h4 { font-size: 1.1rem; margin-bottom: 4px; }
+        .tag-resource-info p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        .loading, .empty-state {
+            text-align: center;
+            padding: var(--space-xl);
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+        }
+    </style>
+</head>
+<body>
+<div class="bg-layer"></div>
+
+<main class="main-container">
+    <div id="tagCloudContainer" class="tag-cloud-large">
+        <div class="loading"><i class="fas fa-spinner fa-spin"></i> 加载标签中...</div>
+    </div>
+    <div id="tagDetailContainer" class="tag-detail" style="display: none;">
+        <h2 id="selectedTagTitle">
+            <i class="fas fa-hashtag" style="color: var(--primary-500);"></i>
+            <span id="selectedTagName"></span>
+        </h2>
+        <div id="tagResourcesList" class="tag-resources"></div>
+    </div>
+</main>
+
+<script src="common.js"></script>
+<script>
+    (async function() {
+        const tagCloudDiv = document.getElementById('tagCloudContainer');
+        const tagDetailDiv = document.getElementById('tagDetailContainer');
+        const selectedTagSpan = document.getElementById('selectedTagName');
+        const resourcesListDiv = document.getElementById('tagResourcesList');
+
+        let allArticles = [];
+        let tagMap = new Map();
+
+        try {
+            allArticles = await getAllArticles();
+
+            allArticles.forEach(article => {
+                const tags = article.meta.tags || [];
+                if (Array.isArray(tags)) {
+                    tags.forEach(tag => {
+                        const normalized = tag.trim().replace(/^#/, '');
+                        if (!normalized) return;
+                        if (!tagMap.has(normalized)) tagMap.set(normalized, []);
+                        tagMap.get(normalized).push(article);
+                    });
+                }
+            });
+
+            if (tagMap.size === 0) {
+                tagCloudDiv.innerHTML = '<div class="empty-state">暂无标签</div>';
+            } else {
+                const sortedTags = Array.from(tagMap.entries()).sort((a, b) => b[1].length - a[1].length);
+                tagCloudDiv.innerHTML = sortedTags.map(([tag, resources]) => {
+                    return `<a href="#" class="tag-item-large" data-tag="${escapeHtml(tag)}">#${escapeHtml(tag)} (${resources.length})</a>`;
+                }).join('');
+
+                document.querySelectorAll('.tag-item-large').forEach(el => {
+                    el.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const tag = el.dataset.tag;
+                        showTagDetail(tag);
+                    });
+                });
+            }
+        } catch (e) {
+            tagCloudDiv.innerHTML = `<div class="error-state">加载失败：${escapeHtml(e.message)}</div>`;
+        }
+
+        function showTagDetail(tag) {
+            const articles = tagMap.get(tag) || [];
+            selectedTagSpan.textContent = tag;
+            if (articles.length === 0) {
+                resourcesListDiv.innerHTML = '<p class="empty-state">该标签下暂无文章</p>';
+            } else {
+                resourcesListDiv.innerHTML = articles.map(article => {
+                    const meta = article.meta;
+                    return `
+                        <a href="#" class="tag-resource-item"
+                           onclick="window.showArticleDetail('${escapeHtml(meta.title || '')}', '${escapeHtml(meta.date || '')}', '${encodeURIComponent(article.content)}', ${encodeURIComponent(JSON.stringify(meta))})">
+                            <div class="tag-resource-icon"><i class="fas fa-feather-alt"></i></div>
+                            <div class="tag-resource-info">
+                                <h4>${escapeHtml(meta.title || '无标题')}</h4>
+                                <p>${meta.summary ? escapeHtml(meta.summary).substring(0, 80) : ''}</p>
+                            </div>
+                        </a>
+                    `;
+                }).join('');
+            }
+            tagDetailDiv.style.display = 'block';
+            tagDetailDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        window.showArticleDetail = function(title, date, encodedContent, encodedMeta) {
+            const markdownContent = decodeURIComponent(encodedContent);
+            const meta = JSON.parse(decodeURIComponent(encodedMeta));
+            const exist = document.querySelector('.article-detail-overlay');
+            if (exist) exist.remove();
+            const overlay = document.createElement('div');
+            overlay.className = 'article-detail-overlay';
+            let html = markdownContent
+                .replace(/### (.*)/g, '<h3>$1</h3>')
+                .replace(/## (.*)/g, '<h2>$1</h2>')
+                .replace(/# (.*)/g, '<h1>$1</h1>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
+                .replace(/\n/g, '<br>');
+
+            let metaInfo = '';
+            if (meta) {
+                if (meta.author) metaInfo += `<span style="margin-right:1rem;">✍️ ${escapeHtml(meta.author)}</span>`;
+                if (meta.readTime) metaInfo += `<span style="margin-right:1rem;">⏱️ ${escapeHtml(meta.readTime)}</span>`;
+                if (meta.tags && meta.tags.length) {
+                    metaInfo += `<div style="margin-top:0.5rem;">${meta.tags.map(tag => `<span class="tag-badge">#${escapeHtml(tag)}</span>`).join('')}</div>`;
+                }
+            }
+
+            overlay.innerHTML = `
+                <div class="article-detail-box">
+                    <button class="article-detail-close">&times;</button>
+                    <h2>${escapeHtml(title)}</h2>
+                    <small style="color: var(--text-muted);">${escapeHtml(date)}</small>
+                    <div style="margin-top:0.5rem; color: var(--text-muted);">${metaInfo}</div>
+                    <div style="margin-top:1rem; line-height:1.7;">${html}</div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            overlay.querySelector('.article-detail-close').onclick = () => {
+                overlay.classList.remove('active');
+                setTimeout(() => overlay.remove(), 300);
+            };
+            overlay.addEventListener('click', e => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('active');
+                    setTimeout(() => overlay.remove(), 300);
+                }
+            });
+            requestAnimationFrame(() => overlay.classList.add('active'));
+        };
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表情包 · 鸿渚の灵质空间</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="common.css">
+    <link rel="icon" id="dynamic-favicon" href="img/ico_1.ico">
+    <style>
+        .main-container { max-width: 1200px; margin: 90px auto 60px; padding: 0 1.5rem; }
+        .emoji-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+        .emoji-card {
+            background: var(--bg-card); border: 1px solid var(--border-light);
+            border-radius: var(--radius-card); padding: 1rem; text-align: center;
+            box-shadow: var(--shadow-sm); transition: var(--transition);
+        }
+        .emoji-card:hover { border-color: var(--primary-400); box-shadow: var(--shadow-hover); transform: translateY(-4px); }
+        .emoji-card img { width: 100%; aspect-ratio: 1; object-fit: contain; }
+        .emoji-name { font-weight: 600; margin: 0.5rem 0; color: var(--text-title); }
+        .download-single-btn {
+            margin-top: 0.4rem; padding: 0.5rem 1.2rem;
+            background: var(--bg-card); border: 1px solid var(--border-light);
+            border-radius: 40px; font-weight: 600; cursor: pointer;
+            transition: var(--transition); color: var(--text-title);
+        }
+        .download-single-btn:hover { background: var(--primary-500); border-color: var(--primary-500); color: white; }
+        .download-all-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 24px; background: var(--primary-500); color: white;
+            border-radius: 40px; text-decoration: none; font-weight: 600;
+            transition: var(--transition);
+        }
+        .download-all-btn:hover { background: var(--primary-600); transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+<div class="bg-layer"></div>
+<main class="main-container">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-left:6px solid var(--primary-500); padding-left:20px;">
+        <h2 style="color:var(--primary-600); font-size:1.8rem;"><i class="fas fa-laugh-wink"></i> 表情包</h2>
+        <a href="https://xxdz-official.github.io/x/emoji/xxdz_emoji_01.zip" class="download-all-btn" download><i class="fas fa-download"></i> 下载全部</a>
+    </div>
+    <div id="emojiContainer" class="emoji-grid"><div class="loading-skeleton">加载中...</div></div>
+</main>
+<script src="common.js"></script>
+<script>
+    const EMOJI_BASE_URL = 'https://xxdz-official.github.io/x/emoji/';
+    async function loadEmojis() {
+        const emojis = await loadJSON('data/emojis.json');
+        const container = document.getElementById('emojiContainer');
+        container.innerHTML = emojis.map((emoji, index) => {
+            const imgUrl = EMOJI_BASE_URL + encodeURIComponent(emoji.file);
+            return `<div class="emoji-card" style="animation-delay:${index*0.05}s;"><img src="${imgUrl}" alt="${escapeHtml(emoji.name)}" loading="lazy" onerror="this.src='https://xxdz-official.github.io/x/img/fallback.png'"><div class="emoji-name">${escapeHtml(emoji.name)}</div><button class="download-single-btn" data-url="${imgUrl}" data-filename="${escapeHtml(emoji.file)}"><i class="fas fa-download"></i> 下载</button></div>`;
+        }).join('');
+        container.querySelectorAll('.download-single-btn').forEach(btn => {
+            btn.addEventListener('click', async function(e) {
+                e.stopPropagation();
+                const url = this.dataset.url, filename = this.dataset.filename;
+                const orig = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> 下载中...'; this.disabled = true;
+                try {
+                    const resp = await fetch(url);
+                    const blob = await resp.blob();
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = filename;
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                } catch(e) { alert('下载失败'); }
+                this.innerHTML = orig; this.disabled = false;
+            });
+        });
+    }
+    window.addEventListener('load', loadEmojis);
+</script>
+</body>
+</html>

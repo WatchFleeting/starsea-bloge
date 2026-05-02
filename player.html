@@ -1,0 +1,19 @@
+<!-- 悬浮术术播放器容器（由 common.js 动态加载） -->
+<div id="floatingPlayer" class="floating-player">
+    <div class="player-titlebar" id="playerTitlebar">
+        <div class="title-left-group" style="display:flex; align-items:center; gap:6px;">
+            <button class="breakout-btn" id="breakoutBtn" title="新窗口打开" style="background:none;border:none;color:var(--primary-400);cursor:pointer;">
+                <i class="fas fa-external-link-alt"></i>
+            </button>
+            <div class="player-title"><i class="fas fa-head-side-vr"></i> 鸿渚音乐</div>
+        </div>
+        <div class="player-window-buttons" style="display:flex; gap:6px;">
+            <button class="win-btn minimize" id="winMinimizeBtn">_</button>
+            <button class="win-btn maximize" id="winMaximizeBtn">🗖</button>
+            <button class="win-btn close" id="winCloseBtn">✕</button>
+        </div>
+    </div>
+    <div class="player-content" style="flex:1;">
+        <iframe id="playerIframe" src="about:blank" allow="autoplay; fullscreen" style="width:100%; height:100%; border:none;"></iframe>
+    </div>
+</div>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章日志 · 鸿渚の灵质空间</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="common.css">
+    <link rel="icon" id="dynamic-favicon" href="img/ico_1.ico">
+    <style>
+        .main-container {
+            max-width: 1200px;
+            margin: 90px auto 60px;
+            padding: 0 1.5rem;
+        }
+        .log-list {
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: var(--space-xl);
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-md);
+        }
+        .log-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-600);
+            margin-bottom: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        .log-entry {
+            padding: var(--space-md) 0;
+            border-bottom: 1px dashed var(--border-light);
+        }
+        .log-entry:last-child { border-bottom: none; }
+        .log-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.2rem;
+        }
+        .log-entry-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-title);
+            margin-bottom: 0.3rem;
+            cursor: pointer;
+        }
+        .log-entry-title:hover { color: var(--primary-500); }
+        .log-summary {
+            color: var(--text-desc);
+            font-size: 0.9rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+<div class="bg-layer"></div>
+
+<main class="main-container">
+    <div class="log-list" id="logList">
+        <div class="log-title"><i class="fas fa-history"></i> 文章日志</div>
+        <div class="loading"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>
+    </div>
+</main>
+
+<script src="common.js"></script>
+<script>
+    (async function() {
+        const container = document.getElementById('logList');
+        try {
+            const articles = await getAllArticles();
+            if (!articles.length) {
+                container.innerHTML = '<div class="empty-state">暂无文章</div>';
+                return;
+            }
+            container.innerHTML = '<div class="log-title"><i class="fas fa-history"></i> 文章日志</div>';
+            articles.forEach(article => {
+                const meta = article.meta;
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                entry.innerHTML = `
+                    <div class="log-date">${escapeHtml(meta.date || '')}</div>
+                    <div class="log-entry-title">${escapeHtml(meta.title || '无标题')}</div>
+                    <div class="log-summary">${escapeHtml(meta.summary || '')}</div>
+                `;
+                entry.addEventListener('click', () => {
+                    showArticleDetail(meta.title, meta.date, article.content, meta);
+                });
+                container.appendChild(entry);
+            });
+        } catch (e) {
+            container.innerHTML = `<div class="error-state">加载失败：${escapeHtml(e.message)}</div>`;
+        }
+    })();
+
+    function showArticleDetail(title, date, markdownContent, meta) {
+        const exist = document.querySelector('.article-detail-overlay');
+        if (exist) exist.remove();
+        const overlay = document.createElement('div');
+        overlay.className = 'article-detail-overlay';
+        let html = markdownContent
+            .replace(/### (.*)/g, '<h3>$1</h3>')
+            .replace(/## (.*)/g, '<h2>$1</h2>')
+            .replace(/# (.*)/g, '<h1>$1</h1>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
+            .replace(/\n/g, '<br>');
+
+        let metaInfo = '';
+        if (meta) {
+            if (meta.author) metaInfo += `<span style="margin-right:1rem;">✍️ ${escapeHtml(meta.author)}</span>`;
+            if (meta.readTime) metaInfo += `<span style="margin-right:1rem;">⏱️ ${escapeHtml(meta.readTime)}</span>`;
+            if (meta.tags && meta.tags.length) {
+                metaInfo += `<div style="margin-top:0.5rem;">${meta.tags.map(tag => `<span class="tag-badge">#${escapeHtml(tag)}</span>`).join('')}</div>`;
+            }
+        }
+
+        overlay.innerHTML = `
+            <div class="article-detail-box">
+                <button class="article-detail-close">&times;</button>
+                <h2>${escapeHtml(title)}</h2>
+                <small style="color: var(--text-muted);">${escapeHtml(date)}</small>
+                <div style="margin-top:0.5rem; color: var(--text-muted);">${metaInfo}</div>
+                <div style="margin-top:1rem; line-height:1.7;">${html}</div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.querySelector('.article-detail-close').onclick = () => {
+            overlay.classList.remove('active');
+            setTimeout(() => overlay.remove(), 300);
+        };
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) {
+                overlay.classList.remove('active');
+                setTimeout(() => overlay.remove(), 300);
+            }
+        });
+        requestAnimationFrame(() => overlay.classList.add('active'));
+    }
+</script>
+</body>
+</html>

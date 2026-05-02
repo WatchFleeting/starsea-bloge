@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>图片库 · 鸿渚の灵质空间</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="common.css">
+    <link rel="icon" id="dynamic-favicon" href="img/ico_1.ico">
+    <style>
+        .main-container { max-width: 1400px; margin: 90px auto 60px; padding: 0 1.5rem; }
+        .wallpaper-section { margin-bottom: 3rem; }
+        .section-header {
+            margin-bottom: 1.5rem;
+            border-left: 6px solid var(--primary-500);
+            padding-left: 20px;
+            display: flex; align-items: center; gap: 12px;
+            color: var(--text-title);
+        }
+        .section-header h2 { font-size: 1.8rem; font-weight: 700; }
+        .wallpaper-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; }
+        .wallpaper-card {
+            background: var(--bg-card); border: 1px solid var(--border-light);
+            border-radius: var(--radius-card); overflow: hidden;
+            box-shadow: var(--shadow-sm); transition: var(--transition);
+        }
+        .wallpaper-card:hover { border-color: var(--primary-400); box-shadow: var(--shadow-hover); transform: translateY(-4px); }
+        .card-preview { position: relative; aspect-ratio: 16/9; background: #eef2f6; cursor: pointer; overflow: hidden; }
+        .card-preview img, .card-preview video { width: 100%; height: 100%; object-fit: cover; }
+        .card-info {
+            padding: 1rem 1.2rem;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 0.5rem;
+        }
+        .card-info h3 { font-size: 1rem; font-weight: 600; }
+        .download-btn {
+            background: var(--bg-card); border: 1px solid var(--border-light);
+            border-radius: 40px; padding: 6px 16px; font-size: 0.8rem; font-weight: 600;
+            color: var(--text-title); text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px;
+            transition: var(--transition);
+        }
+        .download-btn:hover { background: var(--primary-500); border-color: var(--primary-500); color: white; }
+        .badge-series {
+            position: absolute; top: 10px; left: 10px;
+            background: rgba(6,182,212,0.85); backdrop-filter: blur(6px);
+            padding: 4px 10px; font-size: 0.7rem; font-weight: 600; color: white;
+            border-left: 2px solid white; z-index: 2;
+        }
+        .video-indicator {
+            position: absolute; bottom: 8px; right: 8px;
+            background: rgba(0,0,0,0.6); color: white; font-size: 0.7rem;
+            padding: 4px 8px; backdrop-filter: blur(4px); border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="bg-layer"></div>
+<main class="main-container">
+    <div class="wallpaper-section">
+        <div class="section-header"><h2>✨ 新版图片</h2></div>
+        <div id="newWallpaperGrid" class="wallpaper-grid"><div class="loading-skeleton">加载中...</div></div>
+    </div>
+    <div class="wallpaper-section">
+        <div class="section-header"><h2>旧版图片</h2></div>
+        <div id="oldWallpaperGrid" class="wallpaper-grid"><div class="loading-skeleton">加载中...</div></div>
+    </div>
+</main>
+
+<script src="common.js"></script>
+<script>
+    const BASE_URL = 'https://xxdz-official.github.io/x/background/';
+
+    async function loadWallpapers() {
+        const data = await loadJSON('data/wallpapers.json');
+        const newItems = data.filter(item => item.isNew);
+        const oldItems = data.filter(item => !item.isNew);
+
+        function generateCard(item) {
+            const previewUrl = BASE_URL + item.filename;
+            const downloadUrl = BASE_URL + item.filename;
+            const isDynamic = (item.type === 'dynamic_preview');
+            let mediaTag = isDynamic
+                ? `<video src="${previewUrl}" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>`
+                : `<img src="${previewUrl}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.src='https://xxdz-official.github.io/x/img/fallback.png'">`;
+            const seriesHtml = item.series ? `<div class="badge-series">${item.series}</div>` : '';
+            const indicatorHtml = isDynamic ? `<div class="video-indicator">🎬 动态图片</div>` : '';
+            const infoLink = item.bili || '#';
+            return `<div class="wallpaper-card"><div class="card-preview" data-full="${downloadUrl}" data-is-dynamic="${isDynamic}">${seriesHtml}${mediaTag}${indicatorHtml}</div><div class="card-info"><h3>${escapeHtml(item.name)}</h3><div style="display:flex; gap:8px;"><a class="download-btn" href="${infoLink}" target="_blank"><i class="fas fa-info-circle"></i></a><a class="download-btn" href="${downloadUrl}" download="${escapeHtml(item.filename)}" target="_blank"><i class="fas fa-download"></i> 下载</a></div></div></div>`;
+        }
+
+        document.getElementById('newWallpaperGrid').innerHTML = newItems.map(generateCard).join('') || '<div class="error-text">暂无新版图片</div>';
+        document.getElementById('oldWallpaperGrid').innerHTML = oldItems.map(generateCard).join('') || '<div class="error-text">暂无旧版图片</div>';
+
+        document.querySelectorAll('.card-preview').forEach(el => el.addEventListener('click', function(e) {
+            if (e.target.closest('.download-btn')) return;
+            const url = this.getAttribute('data-full');
+            const isDynamic = this.getAttribute('data-is-dynamic') === 'true';
+            if (isDynamic) showDynamicFullscreen(url); else showImagePreview(url);
+        }));
+    }
+
+    function showImagePreview(url) {
+        let overlay = document.querySelector('.image-preview-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'image-preview-overlay';
+            overlay.innerHTML = '<button class="image-preview-close">&times;</button><img class="image-preview-img">';
+            document.body.appendChild(overlay);
+            overlay.querySelector('.image-preview-close').onclick = () => overlay.classList.remove('active');
+            overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.classList.remove('active'); });
+        }
+        overlay.querySelector('img').src = url;
+        overlay.classList.add('active');
+    }
+
+    function showDynamicFullscreen(videoUrl) {
+        const old = document.querySelector('.dynamic-video-overlay');
+        if (old) old.remove();
+        const overlay = document.createElement('div');
+        overlay.className = 'image-preview-overlay';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.96);z-index:20000;display:flex;align-items:center;justify-content:center;';
+        overlay.innerHTML = `<div style="position:relative;width:85%;max-width:1100px;"><video controls autoplay loop style="width:100%;border:3px solid var(--primary-500);background:#000;" src="${videoUrl}"></video><button style="position:absolute;top:-44px;right:0;background:var(--primary-500);color:white;border:none;font-size:1.5rem;padding:0 16px;cursor:pointer;font-weight:bold;">&times;</button></div>`;
+        document.body.appendChild(overlay);
+        const closeBtn = overlay.querySelector('button');
+        const close = () => overlay.remove();
+        closeBtn.onclick = close;
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) close(); });
+    }
+
+    window.addEventListener('load', loadWallpapers);
+</script>
+</body>
+</html>
