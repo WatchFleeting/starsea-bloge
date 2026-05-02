@@ -54,7 +54,6 @@
             padding: 4px 8px; backdrop-filter: blur(4px); border-radius: 4px;
         }
 
-        /* 移动端优化 */
         @media (max-width: 600px) {
             .wallpaper-grid { gap: 1rem; }
             .card-info h3 { font-size: 0.9rem; }
@@ -108,8 +107,8 @@
                 if (isDynamic) showDynamicFullscreen(url); else showImagePreview(url);
             }));
         } catch (error) {
-            console.error('壁纸加载失败:', error);
-            document.getElementById('newWallpaperGrid').innerHTML = '<div class="error-text">⚠️ 壁纸数据加载失败，请稍后重试</div>';
+            console.error('图片库加载失败:', error);
+            document.getElementById('newWallpaperGrid').innerHTML = '<div class="error-text">⚠️ 图片库数据加载失败，请稍后重试</div>';
             document.getElementById('oldWallpaperGrid').innerHTML = '';
         }
     }
