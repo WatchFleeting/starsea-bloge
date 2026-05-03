@@ -180,8 +180,8 @@ body{
 /* ========== 浮动播放器 ========== */
 .floating-player {
     position: fixed;
-    width: 560px;                   /* 桌面端默认宽度 */
-    height: 380px;                  /* 稍微增加高度，避免内容被裁切 */
+    width: 600px;                   /* 桌面端加宽 */
+    height: 480px;                  /* 加高，避免内容裁切 */
     background: #111827;
     border: 1px solid var(--primary-500);
     box-shadow: 0 12px 32px rgba(0,0,0,0.5);
@@ -193,7 +193,6 @@ body{
     flex-direction: column;
     border-radius: 14px;
     overflow: hidden;
-    /* 初始定位会在 JS 中动态设置 */
 }
 .floating-player.show {
     opacity: 1;
@@ -230,18 +229,16 @@ body{
     color: white;
 }
 
-/* 移动端浮动播放器：不会强制全屏，而是保持在屏幕中央的适中尺寸 */
+/* 移动端：播放器改为居中浮动卡片，不占满全屏 */
 @media (max-width: 700px) {
     .floating-player {
         width: 90vw !important;
-        height: 60vh !important;
-        max-width: 500px;           /* 避免过宽 */
-        min-height: 300px;
+        max-width: 500px !important;
+        height: 65vh !important;
+        min-height: 360px !important;
         left: 50% !important;
         top: 50% !important;
         transform: translate(-50%, -50%) !important;
-        /* 保留拖拽能力需要把 transform 清除，但为了居中显示，暂时禁用拖拽在移动端，或者使用 top/left 配合 margin 居中 */
-        /* 注意：移动端拖拽可能会与居中冲突，下面在 JS 里做处理 */
     }
 }
 
