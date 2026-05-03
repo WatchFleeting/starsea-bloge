@@ -20,13 +20,9 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 99999;
         }
-        .cursor-layer img {
-            position: fixed; top: 0; left: 0; pointer-events: none;
-        }
+        .cursor-layer img { position: fixed; top: 0; left: 0; pointer-events: none; }
         a, button, .control-btn, .mode-btn, .track-item, .speed-option,
-        .declaration-header, #downloadBtn, #speedLabel, .volume-slider::-webkit-slider-thumb {
-            cursor: none;
-        }
+        .declaration-header, #downloadBtn, #speedLabel, .volume-slider::-webkit-slider-thumb { cursor: none; }
 
         .app {
             width: 100%; height: 100%;
@@ -51,7 +47,7 @@
         #bgMergedCanvas { width: 100%; height: 100%; background: #010102; }
 
         .sidebar {
-            width: 260px;
+            width: 240px;
             background: rgba(16, 22, 32, 0.5);
             backdrop-filter: blur(12px);
             border-right: 1px solid rgba(6,182,212,0.3);
@@ -59,45 +55,43 @@
             border-radius: 16px 0 0 16px;
         }
         .playlist-header {
-            padding: 12px 14px;
+            padding: 10px 12px;
             background: rgba(12, 18, 28, 0.9);
             border-bottom: 2px solid #06b6d4;
             border-radius: 16px 0 0 0;
         }
         .playlist-header h2 {
-            font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;
+            font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 6px;
             color: #eef5ff;
         }
-        .playlist-header h2 i { font-size: 1.1rem; color: #66ccff; }
+        .playlist-header h2 i { font-size: 1rem; color: #66ccff; }
         .playlist-stats {
-            font-size: 0.65rem; color: #bdd4ff; margin-top: 6px;
+            font-size: 0.6rem; color: #bdd4ff; margin-top: 4px;
             display: flex; justify-content: space-between;
-            border-top: 1px solid rgba(102,204,255,0.3); padding-top: 6px;
+            border-top: 1px solid rgba(102,204,255,0.3); padding-top: 4px;
         }
         .search-box {
-            margin-top: 8px; background: rgba(26,37,56,0.6);
-            display: flex; align-items: center; padding: 4px 10px;
-            border: 1px solid #06b6d4; border-radius: 20px;
+            margin-top: 6px; background: rgba(26,37,56,0.6);
+            display: flex; align-items: center; padding: 3px 8px;
+            border: 1px solid #06b6d4; border-radius: 18px;
         }
-        .search-box i { color: #66ccff; font-size: 0.7rem; margin-right: 6px; }
+        .search-box i { color: #66ccff; font-size: 0.65rem; margin-right: 4px; }
         .search-box input {
             background: transparent; border: none; outline: none;
-            color: #eef5ff; width: 100%; font-size: 0.75rem;
+            color: #eef5ff; width: 100%; font-size: 0.7rem;
         }
-        .playlist-container {
-            flex: 1; overflow-y: auto; padding: 6px 0;
-        }
-        .playlist-container::-webkit-scrollbar { width: 5px; }
-        .playlist-container::-webkit-scrollbar-track { background: #1a2638; border-radius: 3px; }
-        .playlist-container::-webkit-scrollbar-thumb { background: #66ccff; border-radius: 3px; }
+        .playlist-container { flex: 1; overflow-y: auto; padding: 4px 0; }
+        .playlist-container::-webkit-scrollbar { width: 4px; }
+        .playlist-container::-webkit-scrollbar-track { background: #1a2638; border-radius: 2px; }
+        .playlist-container::-webkit-scrollbar-thumb { background: #66ccff; border-radius: 2px; }
 
         .track-item {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 8px 12px; margin: 2px 8px;
+            padding: 6px 10px; margin: 1px 6px;
             background: rgba(24, 32, 44, 0.45);
             border-left: 3px solid transparent;
-            border-radius: 10px;
-            transition: all 0.2s ease;
+            border-radius: 8px;
+            transition: all 0.15s ease;
         }
         .track-item:hover { background: rgba(51, 68, 92, 0.8); border-left-color: #66ccff; }
         .track-item.active-track {
@@ -105,126 +99,126 @@
             border-left-color: #06b6d4;
             box-shadow: inset 0 0 0 1px rgba(6,182,212,0.4);
         }
-        .track-info { flex: 1; overflow: hidden; display: flex; align-items: center; gap: 8px; }
+        .track-info { flex: 1; overflow: hidden; display: flex; align-items: center; gap: 6px; }
         .track-thumb {
-            width: 28px; height: 28px; background: #10161f;
-            border: 1px solid #06b6d4; border-radius: 6px;
+            width: 24px; height: 24px; background: #10161f;
+            border: 1px solid #06b6d4; border-radius: 4px;
             display: flex; align-items: center; justify-content: center;
             overflow: hidden; flex-shrink: 0;
         }
         .track-thumb img { width: 100%; height: 100%; object-fit: cover; }
-        .track-thumb i { font-size: 12px; color: #66ccff; }
+        .track-thumb i { font-size: 10px; color: #66ccff; }
         .track-name {
-            font-size: 0.7rem; font-weight: 500; white-space: nowrap;
+            font-size: 0.65rem; font-weight: 500; white-space: nowrap;
             overflow: hidden; text-overflow: ellipsis; color: #eef3ff;
         }
-        .track-duration { font-size: 0.6rem; color: #9ab3e6; font-family: monospace; margin-left: 4px; }
-        .track-play-icon { opacity: 0; font-size: 0.7rem; color: #06b6d4; transition: opacity 0.15s; }
+        .track-duration { font-size: 0.55rem; color: #9ab3e6; font-family: monospace; margin-left: 4px; }
+        .track-play-icon { opacity: 0; font-size: 0.6rem; color: #06b6d4; transition: opacity 0.15s; }
         .track-item.active-track .track-play-icon { opacity: 1; }
 
         .main-panel {
             flex: 1; display: flex; flex-direction: column;
             background: rgba(10, 15, 25, 0.3); backdrop-filter: blur(10px);
-            padding: 14px 18px; min-width: 0; overflow: hidden;
+            padding: 10px 14px; min-width: 0; overflow: hidden;
             border-radius: 0 16px 16px 0;
             justify-content: center;
         }
         .now-playing-card {
-            display: flex; gap: 14px; margin-bottom: 12px; align-items: center;
+            display: flex; gap: 10px; margin-bottom: 8px; align-items: center;
             background: rgba(22, 30, 42, 0.55);
-            padding: 12px 16px; border-radius: 14px;
+            padding: 8px 12px; border-radius: 10px;
         }
         .cover-box {
-            width: 52px; height: 52px;
+            width: 44px; height: 44px;
             background: #0c111c;
             border: 2px solid #66ccff;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             overflow: hidden; flex-shrink: 0;
-            box-shadow: 0 0 12px rgba(6,182,212,0.4);
+            box-shadow: 0 0 10px rgba(6,182,212,0.4);
         }
         .cover-box.rotating { animation: discRotate 8s linear infinite; }
         @keyframes discRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .cover-box.rotating-pause { animation-play-state: paused; }
         .cover-box img { width: 100%; height: 100%; object-fit: cover; }
-        .cover-fallback { color: #66ccff; font-size: 1.8rem; }
+        .cover-fallback { color: #66ccff; font-size: 1.5rem; }
 
         .track-meta { flex: 1; min-width: 0; overflow: hidden; }
         .track-meta .song-title {
-            font-size: 0.9rem; font-weight: 600; color: #e0f0ff;
-            margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            font-size: 0.8rem; font-weight: 600; color: #e0f0ff;
+            margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .time-info { font-size: 0.65rem; color: #bbd4ff; display: flex; gap: 10px; margin-bottom: 6px; }
+        .time-info { font-size: 0.6rem; color: #bbd4ff; display: flex; gap: 8px; margin-bottom: 4px; }
         .progress-container { cursor: pointer; }
         .progress-bar {
-            width: 100%; height: 5px; background: #1e2a3c;
-            border-radius: 3px; overflow: hidden;
+            width: 100%; height: 3px; background: #1e2a3c;
+            border-radius: 2px; overflow: hidden;
         }
         .progress-fill {
             height: 100%; width: 0%; background: linear-gradient(to right, #66ccff, #06b6d4);
-            border-radius: 3px; box-shadow: 0 0 8px rgba(6,182,212,0.5);
+            border-radius: 2px; box-shadow: 0 0 5px rgba(6,182,212,0.3);
             transition: width 0.1s;
         }
 
-        .controls { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-        .controls-row { display: flex; justify-content: center; align-items: center; gap: 14px; flex-wrap: wrap; }
+        .controls { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+        .controls-row { display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
         .control-btn {
             background: rgba(27, 37, 55, 0.65);
             border: 1px solid #06b6d4;
-            width: 36px; height: 36px; border-radius: 10px;
+            width: 30px; height: 30px; border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1rem; cursor: pointer; color: #66ccff;
+            font-size: 0.9rem; cursor: pointer; color: #66ccff;
             transition: all 0.2s ease;
         }
         .control-btn:hover {
             background: rgba(6, 182, 212, 0.4);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(6,182,212,0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(6,182,212,0.3);
         }
         .control-btn:active { transform: scale(0.94); }
         .control-btn.play-btn {
             background: #66ccff; border-color: #06b6d4;
-            color: #0a121f; width: 44px; height: 44px; border-radius: 14px;
-            font-size: 1.3rem;
+            color: #0a121f; width: 36px; height: 36px; border-radius: 10px;
+            font-size: 1.1rem;
         }
         .control-btn.play-btn:hover {
             background: #06b6d4;
-            box-shadow: 0 4px 14px rgba(6,182,212,0.6);
+            box-shadow: 0 2px 10px rgba(6,182,212,0.5);
         }
 
-        .mode-group { display: flex; background: rgba(19, 29, 44, 0.6); border-radius: 10px; overflow: hidden; }
+        .mode-group { display: flex; background: rgba(19, 29, 44, 0.6); border-radius: 8px; overflow: hidden; }
         .mode-btn {
-            background: none; border: none; color: #66ccff; font-size: 0.75rem;
-            padding: 6px 14px; transition: all 0.2s ease;
+            background: none; border: none; color: #66ccff; font-size: 0.65rem;
+            padding: 4px 10px; transition: all 0.2s ease;
         }
         .mode-btn:hover { background: rgba(6, 182, 212, 0.25); }
-        .mode-btn.active-mode { background: #06b6d4; color: #0a111c; font-weight: bold; border-radius: 8px; }
+        .mode-btn.active-mode { background: #06b6d4; color: #0a111c; font-weight: bold; border-radius: 6px; }
 
-        .volume-wrap { display: flex; align-items: center; gap: 6px; }
-        .volume-slider { width: 70px; height: 4px; background: #2d3f54; border-radius: 2px; -webkit-appearance: none; }
+        .volume-wrap { display: flex; align-items: center; gap: 4px; }
+        .volume-slider { width: 60px; height: 3px; background: #2d3f54; border-radius: 2px; -webkit-appearance: none; }
         .volume-slider::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 12px; height: 12px; background: #66ccff;
+            -webkit-appearance: none; width: 10px; height: 10px; background: #66ccff;
             border-radius: 50%; cursor: pointer;
         }
 
         .speed-wrap { position: relative; }
         #speedLabel {
-            cursor: pointer; padding: 4px 12px;
+            cursor: pointer; padding: 3px 10px;
             background: rgba(27,37,55,0.7); border: 1px solid #06b6d4;
-            border-radius: 8px; font-size: 0.75rem; color: #66ccff;
+            border-radius: 6px; font-size: 0.65rem; color: #66ccff;
             transition: all 0.2s;
         }
         #speedLabel:hover { background: rgba(6,182,212,0.3); }
         .speed-dropdown {
             position: absolute; bottom: 110%; right: 0; margin-bottom: 5px;
             background: rgba(27,37,55,0.95); backdrop-filter: blur(8px);
-            border: 1px solid #06b6d4; border-radius: 8px; min-width: 80px;
+            border: 1px solid #06b6d4; border-radius: 6px; min-width: 70px;
             opacity: 0; visibility: hidden; transform: translateY(10px);
             transition: all 0.2s;
         }
         .speed-dropdown.open { opacity: 1; visibility: visible; transform: translateY(0); }
         .speed-option {
-            padding: 6px 14px; color: #66ccff; font-size: 0.7rem;
+            padding: 4px 10px; color: #66ccff; font-size: 0.65rem;
             text-align: center; transition: background 0.15s;
         }
         .speed-option:hover { background: rgba(6,182,212,0.4); }
@@ -232,29 +226,29 @@
 
         #downloadBtn {
             background: #66ccff; border: none; color: #0a121f;
-            font-size: 0.75rem; padding: 6px 16px; border-radius: 8px;
+            font-size: 0.65rem; padding: 4px 12px; border-radius: 6px;
             transition: all 0.2s;
         }
         #downloadBtn:hover { background: #06b6d4; transform: scale(1.03); }
 
         .declaration-wrap {
-            margin-top: 12px; padding-top: 10px;
+            margin-top: 8px; padding-top: 6px;
             border-top: 1px solid rgba(6,182,212,0.3);
-            font-size: 0.62rem; color: #bbd4ff;
+            font-size: 0.55rem; color: #bbd4ff;
         }
         .declaration-header {
-            display: flex; justify-content: space-between; padding: 4px 8px;
-            cursor: pointer; border-radius: 6px; transition: background 0.2s;
+            display: flex; justify-content: space-between; padding: 3px 6px;
+            cursor: pointer; border-radius: 4px; transition: background 0.2s;
         }
         .declaration-header:hover { background: rgba(6,182,212,0.15); }
         .declaration-content { max-height: 0; overflow: hidden; transition: max-height 0.35s; }
         .declaration-content.open { max-height: 200px; }
         .author-row {
-            margin-top: 8px; padding-top: 6px;
+            margin-top: 6px; padding-top: 4px;
             border-top: 1px solid rgba(6,182,212,0.2);
-            display: flex; align-items: center; gap: 6px;
+            display: flex; align-items: center; gap: 4px;
         }
-        .author-avatar { width: 18px; height: 18px; border-radius: 50%; border: 1px solid #66ccff; }
+        .author-avatar { width: 16px; height: 16px; border-radius: 50%; border: 1px solid #66ccff; }
 
         @media (max-width: 700px) {
             .app { border-radius: 0; }
@@ -310,9 +304,9 @@
             </div>
             <div class="controls-row">
                 <div class="volume-wrap">
-                    <i class="fas fa-volume-down" style="color:#66ccff;"></i>
+                    <i class="fas fa-volume-down" style="color:#66ccff;font-size:0.8rem;"></i>
                     <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.01" value="0.7">
-                    <i class="fas fa-volume-up" style="color:#06b6d4;"></i>
+                    <i class="fas fa-volume-up" style="color:#06b6d4;font-size:0.8rem;"></i>
                 </div>
                 <div class="speed-wrap">
                     <span id="speedLabel">倍速 1x ▾</span>
@@ -338,10 +332,9 @@
                     <i class="fas fa-chevron-down" id="declarationIcon"></i>
                 </div>
                 <div class="declaration-content" id="declarationContent">
-                    <div style="padding:4px 0;">
+                    <div style="padding:3px 0;">
                         本播放器收录的术力口歌曲均为个人积累，包含原作及部分二创。<br>
-                        如涉及版权或侵权，请联系修改，谢谢！<br>
-                        <a href="#" style="color:#66ccff;">点击私信联系</a>
+                        如涉及版权或侵权，请联系修改，谢谢！
                     </div>
                 </div>
                 <div class="author-row">
@@ -355,7 +348,6 @@
 </div>
 
 <script>
-    // ===== 播放器核心逻辑 =====
     let masterTrackList = [], displayList = [], currentIdx = 0, playMode = 'order';
     let audioElem = null, isPlaying = false, isUserInteracted = false;
     let audioCtx = null, mediaSourceNode = null, analyserNode = null, animFrame = null, bgCanvas = null, bgCtx = null;
@@ -385,16 +377,15 @@
     const declarationContent = document.getElementById('declarationContent');
     const declarationIcon = document.getElementById('declarationIcon');
 
-    // 构建媒体 URL：优先 WebOS 直链，否则回退到项目本地 Vocaloid/ 文件夹
+    // 构建媒体 URL：音频与封面均优先 WebOS，否则回退本地
     function buildMediaUrls(songName) {
         const mp3File = songName + '.mp3';
         const coverFile = songName + '.png';
-        const webosMp3 = getWebosUrl('songs', mp3File);
-        const webosCover = getWebosUrl('songs', coverFile);
+        const webosMp3 = typeof getWebosUrl === 'function' ? getWebosUrl('songs', mp3File) : null;
+        const webosCover = typeof getWebosUrl === 'function' ? getWebosUrl('songs', coverFile) : null;
         if (webosMp3 && webosCover) {
             return { mp3Url: webosMp3, coverUrl: webosCover };
         }
-        // 回退到本地相对路径
         const encoded = encodeURIComponent(songName);
         return {
             mp3Url: './Vocaloid/' + encoded + '.mp3',
@@ -410,7 +401,7 @@
         if (!td) return;
         if (imageCache.has(url)) { td.innerHTML = ''; td.appendChild(imageCache.get(url).cloneNode(true)); return; }
         const img = document.createElement('img');
-        img.src = url; img.style.width = '28px'; img.style.height = '28px';
+        img.src = url; img.style.width = '24px'; img.style.height = '24px';
         img.onload = () => {
             imageCache.set(url, img.cloneNode(true));
             const cur = document.getElementById(`thumb-${idx}`);
