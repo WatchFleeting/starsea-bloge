@@ -215,7 +215,7 @@
             const profile = await fetchBilibiliFullProfile(HONGZHU_UID);
             if (profile.avatar) {
                 const avatarImg = document.getElementById('profileAvatar');
-                avatarImg.src = profile.avatar;                // 使用B站头像
+                avatarImg.src = profile.avatar;                // B站头像
                 avatarImg.onerror = function() {
                     this.src = 'img/logo.png';                 // 降级到本地logo
                 };
@@ -260,7 +260,7 @@
             console.warn('个人信息加载失败', e);
         }
 
-        // 渲染函数（同之前最终版）
+        // 渲染函数
         function renderArticle(article) {
             const meta = article.meta || {};
             const tagsHtml = meta.tags && meta.tags.length ? meta.tags.map(tag => `<span class="tag-badge">#${escapeHtml(tag)}</span>`).join('') : '';
