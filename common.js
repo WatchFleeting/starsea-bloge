@@ -177,17 +177,21 @@ function initNavigation(){
         if (mobilePlayer) {
             mobilePlayer.addEventListener('click', (e) => {
                 e.preventDefault();
-                // 模拟点击桌面导航中的播放器按钮
                 const playerToggle = document.getElementById('playerToggleBtn');
                 if (playerToggle) playerToggle.click();
             });
         }
 
-        // 移动端点击交互
+        // 根据屏幕宽度判断交互方式
         const isMobile = () => window.innerWidth <= 700;
         let currentOpen = false;
 
+        // 显示菜单并定位
         function showMenu() {
+            const r = mb.getBoundingClientRect();
+            // 让菜单右对齐于按钮右侧，下方留 8px 间距
+            dd.style.left = Math.min(r.right - dd.offsetWidth, innerWidth - dd.offsetWidth - 10) + 'px';
+            dd.style.top = r.bottom + 8 + 'px';
             dd.classList.add('show');
             currentOpen = true;
         }
@@ -202,19 +206,20 @@ function initNavigation(){
         }
 
         if (isMobile()) {
+            // 移动端：点击“更多”按钮切换菜单
             mb.addEventListener('click', toggleMenu);
+            // 点击菜单外部关闭
             document.addEventListener('click', function(e) {
                 if (!dd.contains(e.target) && e.target !== mb && !mb.contains(e.target)) {
                     hideMenu();
                 }
             });
+            // 窗口大小改变时若离开移动端，不做额外处理（保持点击逻辑，但不影响桌面端因为会刷新）
         } else {
+            // 桌面端：悬停展开
             let timer;
             mb.addEventListener('mouseenter',()=>{
                 clearTimeout(timer);
-                const r=mb.getBoundingClientRect();
-                dd.style.left=Math.min(r.left,innerWidth-dd.offsetWidth-10)+'px';
-                dd.style.top=r.bottom+8+'px';
                 showMenu();
             });
             mb.addEventListener('mouseleave',()=>{
