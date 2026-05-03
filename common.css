@@ -58,18 +58,24 @@
     color: #38bdf8;
 }
 
-/* 下拉菜单（更多/设置）暗色适配 */
+/* 下拉菜单（更多 / 设置）暗色适配 */
 [data-theme="dark"] .custom-dropdown,
 [data-theme="dark"] .lang-dropdown {
     background: rgba(30, 41, 59, 0.95);
     border-color: #0ea5e9;
 }
+/* 二级菜单背景透明（继承父级深色），文字亮色 */
+[data-theme="dark"] .submenu-list {
+    background: transparent;
+}
+/* 所有菜单内的链接文字 */
 [data-theme="dark"] .custom-dropdown a,
 [data-theme="dark"] .lang-dropdown a,
 [data-theme="dark"] .submenu-item a,
 [data-theme="dark"] .submenu-list a {
     color: #e2e8f0;
 }
+/* 悬停效果 */
 [data-theme="dark"] .custom-dropdown a:hover,
 [data-theme="dark"] .lang-dropdown a:hover,
 [data-theme="dark"] .submenu-item a:hover,
@@ -145,7 +151,7 @@ body{
     .nav-item-wrapper.nav-item-player,.nav-item-wrapper.nav-item-wallpaper,
     .nav-item-wrapper.nav-item-emoji,.nav-item-wrapper.nav-item-bili,
     .nav-item-wrapper.nav-item-github{ display:none; }
-    #settingsBtn { display: none; }   /* 移动端隐藏桌面设置按钮，改用更多菜单 */
+    #settingsBtn { display: none; }
     .site-title { font-size: 1.2rem !important; }
     .site-title img { height: 2.2rem !important; }
     .nav-links { gap: 4px !important; }
