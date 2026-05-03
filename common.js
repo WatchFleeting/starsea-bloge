@@ -222,7 +222,7 @@ function initNavigation(){
         }
     }
 
-    // 桌面端“设置”菜单
+    // 桌面端“设置”菜单（含主题和语言）
     const sb=document.getElementById('settingsBtn');
     if(sb){
         const dd=document.createElement('div'); dd.className='custom-dropdown';
@@ -369,8 +369,13 @@ function initPlayer(){
     document.getElementById('winCloseBtn')?.addEventListener('click', close);
 }
 
-/* 动态 Favicon */
-function initFavicon(){ const icons=['img/ico_1.ico','img/ico_2.ico','img/ico_3.ico']; let i=0; const l=document.getElementById('dynamic-favicon'); if(l)setInterval(()=>{ l.href=icons[i=(i+1)%3]; },1000); }
+/* 动态 Favicon（4个图标循环） */
+function initFavicon(){
+    const icons=['img/ico_1.ico','img/ico_2.ico','img/ico_3.ico','img/ico_4.ico'];
+    let i=0;
+    const l=document.getElementById('dynamic-favicon');
+    if(l)setInterval(()=>{ l.href=icons[i=(i+1)%4]; },1000);
+}
 
 /* 文章系统 */
 async function loadArticleIndex(){ return await loadJSON('data-index.json'); }
