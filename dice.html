@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>骰子</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#111827; color:#eef5ff; font-family: 'Segoe UI', system-ui; display:flex; align-items:center; justify-content:center; height:100vh; }
+        .container { text-align:center; width:100%; padding:20px; }
+        .dice { font-size:4rem; color:#66ccff; margin:20px 0; }
+        .btn { background:rgba(27,37,55,0.7); border:1px solid #39C5BB; color:#66ccff; padding:8px 16px; border-radius:8px; cursor:pointer; margin:5px; }
+        .btn:hover { background:rgba(57,197,187,0.3); color:white; }
+        .result { font-size:2rem; margin:15px 0; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="dice" id="diceDisplay">⚀</div>
+    <div class="result" id="resultText">1</div>
+    <div>
+        <button class="btn" id="rollD6"><i class="fa fa-dice"></i> 掷 D6</button>
+        <button class="btn" id="rollD20"><i class="fa fa-dice-d20"></i> D20</button>
+        <button class="btn" id="rps">✊ 猜拳</button>
+    </div>
+</div>
+<script>
+    const diceDisplay = document.getElementById('diceDisplay'),
+          resultText = document.getElementById('resultText');
+    const diceFaces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+    function rollDice(sides){
+        let num = Math.ceil(Math.random()*sides);
+        resultText.textContent = sides===6 ? diceFaces[num-1] + ' ' + num : num;
+        diceDisplay.innerHTML = sides<=6 ? diceFaces[num-1] : `<span style="font-size:3rem;">${num}</span>`;
+    }
+    document.getElementById('rollD6').onclick = ()=> rollDice(6);
+    document.getElementById('rollD20').onclick = ()=> rollDice(20);
+    document.getElementById('rps').onclick = ()=>{
+        const choices = ['✊','✋','✌'];
+        const random = choices[Math.floor(Math.random()*3)];
+        diceDisplay.textContent = random;
+        resultText.textContent = random;
+    }
+</script>
+</body>
+</html>
