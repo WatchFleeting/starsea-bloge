@@ -281,7 +281,18 @@ body{
     }
 }
 
-/* ========== 全局自定义光标（罗小黑） ========== */
+/* ========== 全局罗小黑光标 ========== */
 * {
     cursor: url('img/zhengchang_luoxiaohei.gif') 16 16, auto;
+}
+a, button, .btn, .card, .article-card, .card-item, .file-item,
+.wallpaper-card, .emoji-card, .clickable, [onclick],
+.nav-item-wrapper a, .custom-dropdown a, .lang-dropdown a,
+.submenu-item a, .submenu-list a, .mode-btn, .control-btn,
+#backToTopBtn, #downloadBtn, #speedLabel {
+    cursor: url('img/zhengchang_luoxiaohei.gif') 16 16, pointer;
+}
+input[type="text"], input[type="search"], input[type="password"],
+textarea, [contenteditable="true"] {
+    cursor: url('img/zhengchang_luoxiaohei.gif') 16 16, text;
 }
