@@ -50,6 +50,7 @@ async function loadLanguage(lang) {
         localStorage.setItem('lang', lang);
         currentLang = lang;
         updateLangButtons();
+        updateThemeButtons();
     } catch(e) {
         console.warn('语言文件加载失败', e);
     }
@@ -69,12 +70,7 @@ function applyTranslations() {
 }
 
 function updateLangButtons() {
-    const langObj = SUPPORTED_LANGS.find(l => l.code === currentLang);
-    const displayName = langObj ? langObj.name : currentLang;
-
-    const btn = document.getElementById('langToggleBtn');
-    if (btn) btn.textContent = displayName;
-
+    // 高亮所有语言选项（桌面设置菜单/移动端更多菜单）
     document.querySelectorAll('.lang-option').forEach(el => {
         if (el.getAttribute('data-lang') === currentLang) {
             el.style.fontWeight = 'bold';
@@ -84,17 +80,6 @@ function updateLangButtons() {
             el.style.color = '';
         }
     });
-
-    const dropdown = document.getElementById('langDropdown');
-    if (dropdown) {
-        dropdown.querySelectorAll('a').forEach(a => {
-            if (a.getAttribute('data-lang') === currentLang) {
-                a.style.fontWeight = 'bold';
-            } else {
-                a.style.fontWeight = 'normal';
-            }
-        });
-    }
 }
 
 async function switchLanguage(langCode) {
@@ -102,41 +87,18 @@ async function switchLanguage(langCode) {
     await loadLanguage(langCode);
 }
 
-function initLangDropdown() {
-    const container = document.getElementById('langDropdownContainer');
-    if (!container) return;
-
-    const toggleBtn = document.getElementById('langToggleBtn');
-    const dropdown = document.getElementById('langDropdown');
-    if (!toggleBtn || !dropdown) return;
-
-    dropdown.innerHTML = SUPPORTED_LANGS.map(lang => 
-        `<a href="#" data-lang="${lang.code}" class="lang-option">${lang.name}</a>`
-    ).join('');
-
-    toggleBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropdown.classList.toggle('show');
-    });
-
-    dropdown.querySelectorAll('a').forEach(a => {
-        a.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchLanguage(a.getAttribute('data-lang'));
-            dropdown.classList.remove('show');
-        });
-    });
-
-    document.addEventListener('click', () => {
-        dropdown.classList.remove('show');
-    });
+/* 移动端二级菜单切换 */
+function toggleMobileSubmenu(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = el.style.display === 'block' ? 'none' : 'block';
 }
 
+/* 初始化主题 */
 function initTheme() {
     const saved = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', saved);
-    updateThemeButton();
+    updateThemeButtons();
 }
 
 function toggleTheme() {
@@ -144,14 +106,25 @@ function toggleTheme() {
     const next = current === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('theme', next);
-    updateThemeButton();
+    updateThemeButtons();
 }
 
-function updateThemeButton() {
-    const btn = document.getElementById('themeToggle');
-    if (btn && i18nData) {
-        const current = document.documentElement.getAttribute('data-theme');
-        btn.textContent = current === 'dark' ? i18nData['theme_light'] : i18nData['theme_dark'];
+function updateThemeButtons() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const label = current === 'dark'
+        ? (i18nData?.['theme_light'] || '亮色')
+        : (i18nData?.['theme_dark'] || '暗色');
+
+    // 桌面设置菜单中的主题按钮
+    const btnSettings = document.getElementById('settingsThemeBtn');
+    if (btnSettings) btnSettings.textContent = label;
+
+    // 移动端二级菜单中的亮/暗选项高亮
+    const mobileLight = document.getElementById('themeMobileLight');
+    const mobileDark = document.getElementById('themeMobileDark');
+    if (mobileLight && mobileDark) {
+        mobileLight.style.fontWeight = current === 'light' ? 'bold' : 'normal';
+        mobileDark.style.fontWeight = current === 'dark' ? 'bold' : 'normal';
     }
 }
 
@@ -168,6 +141,8 @@ function initNavigation(){
         b.addEventListener('mouseenter',()=>{ const r=b.getBoundingClientRect(); t.style.left=Math.max(10,r.left)+'px'; t.style.top=r.bottom+8+'px'; t.classList.add('show'); });
         b.addEventListener('mouseleave',()=>t.classList.remove('show'));
     });
+
+    // 移动端“更多”菜单（含二级菜单）
     const mb=document.getElementById('moreBtn');
     if(mb){
         const dd=document.createElement('div'); dd.className='custom-dropdown';
@@ -181,9 +156,19 @@ function initNavigation(){
             <a href="https://afdian.com/a/lyxh-took" target="_blank" data-i18n="afdian">爱发电</a>
             <a href="https://github.com/WatchFleeting" target="_blank" data-i18n="github">GitHub</a>
             <hr>
-            <a href="#" id="themeToggleMobile" onclick="toggleTheme()" data-i18n="theme_dark">暗色</a>
-            <div style="padding: 6px 12px; font-weight: 500;" data-i18n="sw_lang">语言</div>
-            ${SUPPORTED_LANGS.map(lang => `<a href="#" data-lang="${lang.code}" class="lang-option" onclick="switchLanguage('${lang.code}')">${lang.name}</a>`).join('')}
+            <div class="submenu-item" style="display:flex; align-items:center;">
+                <a href="#" onclick="toggleMobileSubmenu('themeSubmenuMobile')" data-i18n="sw_theme" style="flex:1;">主题 ▸</a>
+            </div>
+            <div id="themeSubmenuMobile" class="submenu-list" style="display:none; padding-left:12px;">
+                <a href="#" id="themeMobileLight" onclick="toggleTheme()" data-i18n="theme_light">亮色</a>
+                <a href="#" id="themeMobileDark" onclick="toggleTheme()" data-i18n="theme_dark">暗色</a>
+            </div>
+            <div class="submenu-item" style="display:flex; align-items:center;">
+                <a href="#" onclick="toggleMobileSubmenu('langSubmenuMobile')" data-i18n="sw_lang" style="flex:1;">语言 ▸</a>
+            </div>
+            <div id="langSubmenuMobile" class="submenu-list" style="display:none; padding-left:12px;">
+                ${SUPPORTED_LANGS.map(lang => `<a href="#" data-lang="${lang.code}" class="lang-option" onclick="switchLanguage('${lang.code}')">${lang.name}</a>`).join('')}
+            </div>
         `;
         document.body.appendChild(dd); let timer;
         mb.addEventListener('mouseenter',()=>{ clearTimeout(timer); const r=mb.getBoundingClientRect(); dd.style.left=Math.min(r.left,innerWidth-dd.offsetWidth-10)+'px'; dd.style.top=r.bottom+8+'px'; dd.classList.add('show'); });
@@ -191,6 +176,25 @@ function initNavigation(){
         dd.addEventListener('mouseenter',()=>clearTimeout(timer));
         dd.addEventListener('mouseleave',()=>dd.classList.remove('show'));
     }
+
+    // 桌面端“设置”菜单（含主题和语言）
+    const sb=document.getElementById('settingsBtn');
+    if(sb){
+        const dd=document.createElement('div'); dd.className='custom-dropdown';
+        dd.setAttribute('id', 'settingsDropdown');
+        dd.innerHTML=`
+            <a href="#" id="settingsThemeBtn" onclick="toggleTheme()" data-i18n="theme_dark">暗色</a>
+            <hr>
+            <div data-i18n="sw_lang" style="padding:6px 12px; font-weight:500;">语言</div>
+            ${SUPPORTED_LANGS.map(lang => `<a href="#" data-lang="${lang.code}" class="lang-option" onclick="switchLanguage('${lang.code}')">${lang.name}</a>`).join('')}
+        `;
+        document.body.appendChild(dd); let timer;
+        sb.addEventListener('mouseenter',()=>{ clearTimeout(timer); const r=sb.getBoundingClientRect(); dd.style.left=Math.min(r.left,innerWidth-dd.offsetWidth-10)+'px'; dd.style.top=r.bottom+8+'px'; dd.classList.add('show'); });
+        sb.addEventListener('mouseleave',()=>{ timer=setTimeout(()=>dd.classList.remove('show'),200); });
+        dd.addEventListener('mouseenter',()=>clearTimeout(timer));
+        dd.addEventListener('mouseleave',()=>dd.classList.remove('show'));
+    }
+
     const bb=document.getElementById('backToTopBtn');
     if(bb){ addEventListener('scroll',()=>{ const s=scrollY>200; bb.style.opacity=s?'1':'0'; bb.style.visibility=s?'visible':'hidden'; }); bb.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'})); }
 }
@@ -386,6 +390,5 @@ async function initSite(){
     initNavigation();
     initPlayer();
     initFavicon();
-    setTimeout(initLangDropdown, 100);
 }
 document.addEventListener('DOMContentLoaded', initSite);
