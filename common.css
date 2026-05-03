@@ -98,9 +98,10 @@ body{
     font-family:'Inter',sans-serif; background:var(--bg-page); color:var(--text-title);
     line-height:1.5; overflow-x:hidden;
 }
+/* 修复背景图片路径，使用项目本地图片 */
 .bg-layer{
     position:fixed; top:0; left:0; width:100%; height:100%;
-    background-image:url('https://xxdz-official.github.io/x/img/bg.png');
+    background-image:url('img/bg.png');
     background-size:cover; background-position:center; z-index:-1;
     opacity:0.08; animation:bgZoomIn 1.2s ease forwards;
 }
@@ -143,7 +144,7 @@ body{
     body.island-active{ margin-top:90px; }
 }
 
-/* 移动端隐藏部分元素 */
+/* 移动端隐藏部分元素，但保留播放器按钮的容器样式以便在更多菜单中使用 */
 @media(max-width:700px){
     .nav-item-wrapper.nav-item-player,.nav-item-wrapper.nav-item-wallpaper,
     .nav-item-wrapper.nav-item-emoji,.nav-item-wrapper.nav-item-bili,
@@ -177,7 +178,7 @@ body{
 .btn-primary{ background:var(--primary-500); color:white; }
 .btn-primary:hover{ background:var(--primary-600); }
 
-/* 悬浮播放器 */
+/* 悬浮播放器（移动端可考虑全屏，此处保留原样式，但增加移动端适配） */
 .floating-player{
     position:fixed; width:540px; height:360px; background:#111827;
     border:1px solid var(--primary-500); box-shadow:0 8px 30px rgba(6,182,212,0.3);
@@ -278,6 +279,15 @@ body{
         min-height: var(--touch-target-size) !important;
         min-width: var(--touch-target-size) !important;
         font-size: 0.9rem !important;
+    }
+    /* 确保悬浮播放器在移动端保持合适尺寸，可全屏或限制比例 */
+    .floating-player {
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100vw;
+        max-height: 100vh;
+        left: 0 !important;
+        top: 0 !important;
     }
 }
 
