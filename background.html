@@ -67,7 +67,7 @@
 
 <script src="common.js"></script>
 <script>
-    // 本地备用路径（当映射未配置时使用）
+    // 本地备用路径
     const LOCAL_BASE = './background/';
 
     async function loadWallpapers() {
@@ -110,10 +110,10 @@
     }
 
     function getWallpaperUrl(filename) {
-        // 优先使用 WebOS 映射
+        // 优先使用 WebOS 直链
         const webosUrl = getWebosUrl('wallpapers', filename);
         if (webosUrl) return webosUrl;
-        // 否则使用本地路径
+        // 否则回退到本地
         return LOCAL_BASE + encodeURIComponent(filename);
     }
 
@@ -127,17 +127,7 @@
         const seriesHtml = item.series ? `<div class="badge-series">${item.series}</div>` : '';
         const indicatorHtml = isDynamic ? `<div class="video-indicator">🎬 动态图片</div>` : '';
         const infoLink = item.bili || '#';
-        return `<div class="wallpaper-card">
-            <div class="card-preview" data-full="${downloadUrl}" data-is-dynamic="${isDynamic}">
-                ${seriesHtml}${mediaTag}${indicatorHtml}
-            </div>
-            <div class="card-info">
-                <h3>${escapeHtml(item.name)}</h3>
-                <div style="display:flex; gap:8px;">
-                    <a class="download-btn" href="${infoLink}" target="_blank"><i class="fas fa-info-circle"></i></a>
-                    <a class="download-btn" href="${downloadUrl}" download="${escapeHtml(item.filename)}" target="_blank"><i class="fas fa-download"></i> 下载</a>
-                </div>
-            </div></div>`;
+        return `<div class="wallpaper-card"><div class="card-preview" data-full="${downloadUrl}" data-is-dynamic="${isDynamic}">${seriesHtml}${mediaTag}${indicatorHtml}</div><div class="card-info"><h3>${escapeHtml(item.name)}</h3><div style="display:flex; gap:8px;"><a class="download-btn" href="${infoLink}" target="_blank"><i class="fas fa-info-circle"></i></a><a class="download-btn" href="${downloadUrl}" download="${escapeHtml(item.filename)}" target="_blank"><i class="fas fa-download"></i> 下载</a></div></div></div>`;
     }
 
     function showImagePreview(url) {
