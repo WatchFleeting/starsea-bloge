@@ -31,6 +31,24 @@ async function loadPlayer(sel='body'){
 /* 通用 JSON 加载 */
 async function loadJSON(url){ const r=await fetch(url); if(!r.ok)throw new Error(`无法加载 ${url}`); return await r.json(); }
 
+/* ================= WebOS 直链映射 ================= */
+let webosMapping = null;
+
+async function loadWebosMapping() {
+    try {
+        webosMapping = await loadJSON('data/webos-mapping.json');
+    } catch(e) {
+        console.warn('WebOS 映射加载失败', e);
+        webosMapping = null;
+    }
+}
+
+// 获取指定类别下的文件直链，未配置时返回 null
+function getWebosUrl(category, fileName) {
+    if (!webosMapping || !webosMapping[category]) return null;
+    return webosMapping[category][fileName] || null;
+}
+
 /* ================= 主题 & 多语言 ================= */
 const SUPPORTED_LANGS = [
     { code: 'zh', name: '中文' },
@@ -265,7 +283,6 @@ function initPlayer(){
 
     function show(tr, us=false){
         p.classList.remove('minimizing');
-        // 设备判断：宽度 > 700 为桌面端
         if (window.innerWidth > 700) {
             if (!us && tr) {
                 const r = tr.getBoundingClientRect();
@@ -289,7 +306,6 @@ function initPlayer(){
                 p.style.transform = '';
             }
         } else {
-            // 移动端：CSS 已通过媒体查询居中，这里只需移除内联定位
             p.style.left = '';
             p.style.top = '';
             p.style.transform = '';
@@ -327,7 +343,6 @@ function initPlayer(){
         }
     }
 
-    // 拖拽（仅桌面端）
     const titlebar = document.getElementById('playerTitlebar');
     if (titlebar && window.innerWidth > 700) {
         titlebar.addEventListener('mousedown', (e) => {
@@ -360,7 +375,6 @@ function initPlayer(){
         removeEventListener('mouseup', stopDrag);
     }
 
-    // 绑定按钮
     document.getElementById('playerToggleBtn')?.addEventListener('click', (e) => {
         e.preventDefault();
         if (min) show(document.getElementById('playerNavItem'), true);
@@ -380,7 +394,7 @@ function initFavicon(){
     if(l)setInterval(()=>{ l.href=icons[i=(i+1)%4]; },1000);
 }
 
-/* 文章系统（保持不变） */
+/* 文章系统 */
 async function loadArticleIndex(){ return await loadJSON('data-index.json'); }
 async function loadMarkdownArticle(path){
     try{
@@ -429,7 +443,7 @@ async function getAllContent(){
     all.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return all;
 }
 
-/* B站API多代理 */
+/* ====================== B站公开API（多代理自动切换） ====================== */
 const CORS_PROXIES = [
     'https://api.allorigins.win/raw?url=',
     'https://corsproxy.io/?',
@@ -485,7 +499,7 @@ async function fetchBilibiliFullProfile(uid){
     return { uid, ...info, ...rel, ...up, latestVideo: video };
 }
 
-/* 全局弹窗 showArticleDetail（省略，保持原样） */
+/* 全局弹窗 */
 function showArticleDetail(title, date, markdownContent, meta) {
     const exist = document.querySelector('.article-detail-overlay');
     if (exist) exist.remove();
@@ -533,6 +547,7 @@ function showArticleDetail(title, date, markdownContent, meta) {
 
 /* 全局初始化 */
 async function initSite(){
+    await loadWebosMapping();   // 最先加载映射，确保后续可用
     await loadLanguage(currentLang);
     initTheme();
     await Promise.all([loadHeader(), loadFooter(), loadPlayer()]);
