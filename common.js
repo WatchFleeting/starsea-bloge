@@ -42,12 +42,6 @@ async function loadWebosConfig() {
     }
 }
 
-/**
- * 根据类别和文件名生成 WebOS 直链
- * @param {string} category - 资源类别（'wallpapers' 或 'songs'）
- * @param {string} fileName - 文件名（含扩展名）
- * @returns {string|null}
- */
 function getWebosUrl(category, fileName) {
     if (!webosConfig || !webosConfig[category]) return null;
     const cfg = webosConfig[category];
@@ -138,9 +132,6 @@ function updateThemeButtons() {
         ? (i18nData?.['theme_light'] || '亮色')
         : (i18nData?.['theme_dark'] || '暗色');
 
-    const btnSettings = document.getElementById('settingsThemeBtn');
-    if (btnSettings) btnSettings.textContent = label;
-
     const mobileLight = document.getElementById('themeMobileLight');
     const mobileDark = document.getElementById('themeMobileDark');
     if (mobileLight && mobileDark) {
@@ -149,7 +140,7 @@ function updateThemeButtons() {
     }
 }
 
-/* ================= 导航交互 ================= */
+/* ================= 导航交互（统一更多菜单，移除设置按钮） ================= */
 function initNavigation(){
     const tb=document.getElementById('mainTopBar');
     if(tb){
@@ -163,11 +154,11 @@ function initNavigation(){
         b.addEventListener('mouseleave',()=>t.classList.remove('show'));
     });
 
-    // 移动端“更多”菜单（含二级菜单、播放器入口）
+    // 统一“更多”菜单（桌面+移动）
     const mb=document.getElementById('moreBtn');
     if(mb){
         const dd=document.createElement('div'); dd.className='custom-dropdown';
-        dd.setAttribute('id', 'mobileMoreDropdown');
+        dd.setAttribute('id', 'unifiedMoreDropdown');
         dd.innerHTML=`
             <a href="background.html" data-i18n="image_library">图片库</a>
             <a href="emoji.html" data-i18n="emoji_pack">表情包</a>
@@ -181,29 +172,27 @@ function initNavigation(){
             <a href="#" id="mobilePlayerBtn" data-i18n="player">🎵 播放器</a>
             <hr>
             <div class="submenu-item" style="display:flex; align-items:center;">
-                <a href="#" onclick="event.stopPropagation(); toggleMobileSubmenu('themeSubmenuMobile')" data-i18n="sw_theme" style="flex:1;">主题 ▸</a>
+                <a href="#" onclick="event.stopPropagation(); toggleMobileSubmenu('themeSubmenuUnified')" data-i18n="sw_theme" style="flex:1;">主题 ▸</a>
             </div>
-            <div id="themeSubmenuMobile" class="submenu-list" style="display:none; padding-left:12px;">
+            <div id="themeSubmenuUnified" class="submenu-list" style="display:none; padding-left:12px;">
                 <a href="#" id="themeMobileLight" onclick="toggleTheme()" data-i18n="theme_light">亮色</a>
                 <a href="#" id="themeMobileDark" onclick="toggleTheme()" data-i18n="theme_dark">暗色</a>
             </div>
             <div class="submenu-item" style="display:flex; align-items:center;">
-                <a href="#" onclick="event.stopPropagation(); toggleMobileSubmenu('langSubmenuMobile')" data-i18n="sw_lang" style="flex:1;">语言 ▸</a>
+                <a href="#" onclick="event.stopPropagation(); toggleMobileSubmenu('langSubmenuUnified')" data-i18n="sw_lang" style="flex:1;">语言 ▸</a>
             </div>
-            <div id="langSubmenuMobile" class="submenu-list" style="display:none; padding-left:12px;">
+            <div id="langSubmenuUnified" class="submenu-list" style="display:none; padding-left:12px;">
                 ${SUPPORTED_LANGS.map(lang => `<a href="#" data-lang="${lang.code}" class="lang-option" onclick="switchLanguage('${lang.code}')">${lang.name}</a>`).join('')}
             </div>
         `;
         document.body.appendChild(dd);
 
+        // 播放器入口
         const mobilePlayer = dd.querySelector('#mobilePlayerBtn');
-        if (mobilePlayer) {
-            mobilePlayer.addEventListener('click', (e) => {
-                e.preventDefault();
-                const playerToggle = document.getElementById('playerToggleBtn');
-                if (playerToggle) playerToggle.click();
-            });
-        }
+        if (mobilePlayer) mobilePlayer.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('playerToggleBtn')?.click();
+        });
 
         const isMobile = () => window.innerWidth <= 700;
         let currentOpen = false;
@@ -227,50 +216,16 @@ function initNavigation(){
 
         if (isMobile()) {
             mb.addEventListener('click', toggleMenu);
-            document.addEventListener('click', function(e) {
-                if (!dd.contains(e.target) && e.target !== mb && !mb.contains(e.target)) {
-                    hideMenu();
-                }
+            document.addEventListener('click', e => {
+                if (!dd.contains(e.target) && e.target !== mb && !mb.contains(e.target)) hideMenu();
             });
         } else {
             let timer;
-            mb.addEventListener('mouseenter',()=>{
-                clearTimeout(timer);
-                showMenu();
-            });
-            mb.addEventListener('mouseleave',()=>{
-                timer=setTimeout(()=>hideMenu(),200);
-            });
-            dd.addEventListener('mouseenter',()=>clearTimeout(timer));
-            dd.addEventListener('mouseleave',()=>hideMenu());
+            mb.addEventListener('mouseenter', () => { clearTimeout(timer); showMenu(); });
+            mb.addEventListener('mouseleave', () => { timer = setTimeout(hideMenu, 200); });
+            dd.addEventListener('mouseenter', () => clearTimeout(timer));
+            dd.addEventListener('mouseleave', () => hideMenu());
         }
-    }
-
-    // 桌面端“设置”菜单（含主题和语言）
-    const sb=document.getElementById('settingsBtn');
-    if(sb){
-        const dd=document.createElement('div'); dd.className='custom-dropdown';
-        dd.setAttribute('id', 'settingsDropdown');
-        dd.innerHTML=`
-            <a href="#" id="settingsThemeBtn" onclick="toggleTheme()" data-i18n="theme_dark">暗色</a>
-            <hr>
-            <div data-i18n="sw_lang" style="padding:6px 12px; font-weight:500;">语言</div>
-            ${SUPPORTED_LANGS.map(lang => `<a href="#" data-lang="${lang.code}" class="lang-option" onclick="switchLanguage('${lang.code}')">${lang.name}</a>`).join('')}
-        `;
-        document.body.appendChild(dd);
-        let timer;
-        sb.addEventListener('mouseenter',()=>{
-            clearTimeout(timer);
-            const r=sb.getBoundingClientRect();
-            dd.style.left=Math.min(r.left,innerWidth-dd.offsetWidth-10)+'px';
-            dd.style.top=r.bottom+8+'px';
-            dd.classList.add('show');
-        });
-        sb.addEventListener('mouseleave',()=>{
-            timer=setTimeout(()=>dd.classList.remove('show'),200);
-        });
-        dd.addEventListener('mouseenter',()=>clearTimeout(timer));
-        dd.addEventListener('mouseleave',()=>dd.classList.remove('show'));
     }
 
     const bb=document.getElementById('backToTopBtn');
@@ -292,11 +247,11 @@ function initPlayer(){
         if (window.innerWidth > 700) {
             if (!us && tr) {
                 const r = tr.getBoundingClientRect();
-                let l = r.left + r.width/2 - 300;
+                let l = r.left + r.width/2 - 290;   // 对应新宽度580
                 let t = r.bottom + 8;
-                if (l + 600 > innerWidth - 16) l = innerWidth - 616;
+                if (l + 580 > innerWidth - 16) l = innerWidth - 596;
                 if (l < 16) l = 16;
-                if (t + 480 > innerHeight - 16) t = r.top - 488;
+                if (t + 420 > innerHeight - 16) t = r.top - 428;
                 if (t < 0) t = 16;
                 p.style.left = l + 'px';
                 p.style.top = t + 'px';
@@ -307,12 +262,11 @@ function initPlayer(){
                 p.style.top = pos.top + 'px';
                 p.style.transform = '';
             } else {
-                p.style.left = (innerWidth - 600) / 2 + 'px';
-                p.style.top = (innerHeight - 480) / 2 + 'px';
+                p.style.left = (innerWidth - 580) / 2 + 'px';
+                p.style.top = (innerHeight - 420) / 2 + 'px';
                 p.style.transform = '';
             }
         } else {
-            // 移动端由 CSS 媒体查询控制居中，这里移除内联定位
             p.style.left = '';
             p.style.top = '';
             p.style.transform = '';
@@ -336,21 +290,14 @@ function initPlayer(){
         min = true;
         p.classList.add('minimizing');
         setTimeout(() => {
-            if (min) {
-                p.classList.remove('show','minimizing');
-                open = false;
-            }
+            if (min) { p.classList.remove('show','minimizing'); open = false; }
         }, 350);
     }
 
     function maximize(){
-        if (open) {
-            window.open(PUR, '_blank');
-            close();
-        }
+        if (open) { window.open(PUR, '_blank'); close(); }
     }
 
-    // 拖拽（仅桌面端）
     const titlebar = document.getElementById('playerTitlebar');
     if (titlebar && window.innerWidth > 700) {
         titlebar.addEventListener('mousedown', (e) => {
@@ -383,7 +330,6 @@ function initPlayer(){
         removeEventListener('mouseup', stopDrag);
     }
 
-    // 绑定按钮
     document.getElementById('playerToggleBtn')?.addEventListener('click', (e) => {
         e.preventDefault();
         if (min) show(document.getElementById('playerNavItem'), true);
@@ -559,7 +505,7 @@ function showArticleDetail(title, date, markdownContent, meta) {
 
 /* 全局初始化 */
 async function initSite(){
-    await loadWebosConfig();   // 优先加载 WebOS 配置
+    await loadWebosConfig();
     await loadLanguage(currentLang);
     initTheme();
     await Promise.all([loadHeader(), loadFooter(), loadPlayer()]);
