@@ -207,13 +207,12 @@
 <script src="common.js"></script>
 <script>
     window.addEventListener('load', async () => {
-        // 等待 i18n 加载完成，但最多等 2 秒
+        // 等待 i18n 加载完成（最多等 2 秒）
         let attempts = 0;
         while (!i18nData && attempts < 40) {
             await new Promise(resolve => setTimeout(resolve, 50));
             attempts++;
         }
-        // 安全获取 i18n 文本
         const t = (key, fallback) => (i18nData && i18nData[key]) ? i18nData[key] : fallback;
 
         const HONGZHU_UID = '3493109964999279';
@@ -305,44 +304,35 @@
             });
         }
 
-        // 加载文章
         try {
             const articles = await getAllArticles();
             const ac = document.getElementById('articlesContainer');
-            if (!articles.length) ac.innerHTML = `<div class="empty-state">${t('no_articles', '暂无文章')}</div>`;
+            if (!articles.length) ac.innerHTML = `<div class="empty-state">${t('no_articles','暂无文章')}</div>`;
             else {
                 ac.innerHTML = articles.map(renderArticle).join('');
                 bindDetailClick(ac, '.article-card', articles);
             }
-        } catch(e) {
-            document.getElementById('articlesContainer').innerHTML = `<div class="error-text">${t('load_failed', '加载失败')}: ${escapeHtml(e.message)}</div>`;
-        }
+        } catch(e) { document.getElementById('articlesContainer').innerHTML = `<div class="error-text">${t('load_failed','加载失败')}: ${escapeHtml(e.message)}</div>`; }
 
-        // 加载卡片
         try {
             const cards = await getCards();
             const cc = document.getElementById('cardsContainer');
-            if (!cards.length) cc.innerHTML = `<div class="empty-state">${t('no_cards', '暂无卡片')}</div>`;
+            if (!cards.length) cc.innerHTML = `<div class="empty-state">${t('no_cards','暂无卡片')}</div>`;
             else {
                 cc.innerHTML = cards.map(renderCard).join('');
                 bindDetailClick(cc, '.card-item', cards);
             }
-        } catch(e) {
-            document.getElementById('cardsContainer').innerHTML = `<div class="error-text">${t('load_failed', '加载失败')}: ${escapeHtml(e.message)}</div>`;
-        }
+        } catch(e) { document.getElementById('cardsContainer').innerHTML = `<div class="error-text">${t('load_failed','加载失败')}: ${escapeHtml(e.message)}</div>`; }
 
-        // 加载文件
         try {
             const files = await getFiles();
             const fc = document.getElementById('filesContainer');
-            if (!files.length) fc.innerHTML = `<div class="empty-state">${t('no_files', '暂无文件')}</div>`;
+            if (!files.length) fc.innerHTML = `<div class="empty-state">${t('no_files','暂无文件')}</div>`;
             else {
                 fc.innerHTML = files.map(renderFile).join('');
                 bindDetailClick(fc, '.file-item', files);
             }
-        } catch(e) {
-            document.getElementById('filesContainer').innerHTML = `<div class="error-text">${t('load_failed', '加载失败')}: ${escapeHtml(e.message)}</div>`;
-        }
+        } catch(e) { document.getElementById('filesContainer').innerHTML = `<div class="error-text">${t('load_failed','加载失败')}: ${escapeHtml(e.message)}</div>`; }
     });
 </script>
 </body>
