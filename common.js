@@ -139,7 +139,7 @@ function initNavigation(){
         b.addEventListener('mouseleave',()=>t.classList.remove('show'));
     });
 
-    // 移动端“更多”菜单（含二级菜单、播放器入口）
+    // 移动端“更多”菜单
     const mb=document.getElementById('moreBtn');
     if(mb){
         const dd=document.createElement('div'); dd.className='custom-dropdown';
@@ -222,7 +222,7 @@ function initNavigation(){
         }
     }
 
-    // 桌面端“设置”菜单（含主题和语言）
+    // 桌面端“设置”菜单
     const sb=document.getElementById('settingsBtn');
     if(sb){
         const dd=document.createElement('div'); dd.className='custom-dropdown';
@@ -253,7 +253,7 @@ function initNavigation(){
     if(bb){ addEventListener('scroll',()=>{ const s=scrollY>200; bb.style.opacity=s?'1':'0'; bb.style.visibility=s?'visible':'hidden'; }); bb.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'})); }
 }
 
-/* ================= 浮动播放器核心逻辑 ================= */
+/* ================= 浮动播放器（自适应 + 拖拽） ================= */
 function initPlayer(){
     const p=document.getElementById('floatingPlayer');
     const f=document.getElementById('playerIframe');
@@ -265,30 +265,33 @@ function initPlayer(){
 
     function show(tr, us=false){
         p.classList.remove('minimizing');
-        if (window.innerWidth <= 700) {
-            // 移动端：居中浮动，忽略传入的定位
-            p.style.left = '50%';
-            p.style.top = '50%';
-            p.style.transform = 'translate(-50%, -50%)';
-        } else if (!us && tr) {
-            const r = tr.getBoundingClientRect();
-            let l = r.left + r.width/2 - 300;
-            let t = r.bottom + 8;
-            if (l + 600 > innerWidth - 16) l = innerWidth - 616;
-            if (l < 16) l = 16;
-            if (t + 480 > innerHeight - 16) t = r.top - 488;
-            if (t < 0) t = 16;
-            p.style.left = l + 'px';
-            p.style.top = t + 'px';
-            p.style.transform = '';  // 清除移动端残留的transform
-            pos = {left: l, top: t};
-        } else if (pos.left != null) {
-            p.style.left = pos.left + 'px';
-            p.style.top = pos.top + 'px';
-            p.style.transform = '';
+        // 设备判断：宽度 > 700 为桌面端
+        if (window.innerWidth > 700) {
+            if (!us && tr) {
+                const r = tr.getBoundingClientRect();
+                let l = r.left + r.width/2 - 300;
+                let t = r.bottom + 8;
+                if (l + 600 > innerWidth - 16) l = innerWidth - 616;
+                if (l < 16) l = 16;
+                if (t + 480 > innerHeight - 16) t = r.top - 488;
+                if (t < 0) t = 16;
+                p.style.left = l + 'px';
+                p.style.top = t + 'px';
+                p.style.transform = '';
+                pos = {left: l, top: t};
+            } else if (pos.left != null) {
+                p.style.left = pos.left + 'px';
+                p.style.top = pos.top + 'px';
+                p.style.transform = '';
+            } else {
+                p.style.left = (innerWidth - 600) / 2 + 'px';
+                p.style.top = (innerHeight - 480) / 2 + 'px';
+                p.style.transform = '';
+            }
         } else {
-            p.style.left = (innerWidth - 600) / 2 + 'px';
-            p.style.top = (innerHeight - 480) / 2 + 'px';
+            // 移动端：CSS 已通过媒体查询居中，这里只需移除内联定位
+            p.style.left = '';
+            p.style.top = '';
             p.style.transform = '';
         }
 
@@ -369,7 +372,7 @@ function initPlayer(){
     document.getElementById('winCloseBtn')?.addEventListener('click', close);
 }
 
-/* 动态 Favicon（4个图标循环） */
+/* 动态 Favicon（4个图标） */
 function initFavicon(){
     const icons=['img/ico_1.ico','img/ico_2.ico','img/ico_3.ico','img/ico_4.ico'];
     let i=0;
@@ -377,7 +380,7 @@ function initFavicon(){
     if(l)setInterval(()=>{ l.href=icons[i=(i+1)%4]; },1000);
 }
 
-/* 文章系统 */
+/* 文章系统（保持不变） */
 async function loadArticleIndex(){ return await loadJSON('data-index.json'); }
 async function loadMarkdownArticle(path){
     try{
@@ -408,28 +411,25 @@ async function getAllArticles(){
     if(idx.articles) for(const p of idx.articles){ const a=await loadMarkdownArticle(p); if(a)arts.push(a); }
     arts.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return arts;
 }
-
 async function getCards(){
     const idx=await loadArticleIndex();
     const cards=[];
     if(idx.cards) for(const p of idx.cards){ const a=await loadMarkdownArticle(p); if(a)cards.push(a); }
     cards.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return cards;
 }
-
 async function getFiles(){
     const idx=await loadArticleIndex();
     const files=[];
     if(idx.files) for(const p of idx.files){ const a=await loadMarkdownArticle(p); if(a)files.push(a); }
     files.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return files;
 }
-
 async function getAllContent(){
     const [articles,cards,files]=await Promise.all([getAllArticles(),getCards(),getFiles()]);
     const all=[...articles,...cards,...files];
     all.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return all;
 }
 
-/* ====================== B站公开API（多代理自动切换） ====================== */
+/* B站API多代理 */
 const CORS_PROXIES = [
     'https://api.allorigins.win/raw?url=',
     'https://corsproxy.io/?',
@@ -485,7 +485,7 @@ async function fetchBilibiliFullProfile(uid){
     return { uid, ...info, ...rel, ...up, latestVideo: video };
 }
 
-/* 全局弹窗：显示文章详情 */
+/* 全局弹窗 showArticleDetail（省略，保持原样） */
 function showArticleDetail(title, date, markdownContent, meta) {
     const exist = document.querySelector('.article-detail-overlay');
     if (exist) exist.remove();
