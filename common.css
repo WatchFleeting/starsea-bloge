@@ -98,7 +98,6 @@ body{
     font-family:'Inter',sans-serif; background:var(--bg-page); color:var(--text-title);
     line-height:1.5; overflow-x:hidden;
 }
-/* 修复背景图片路径，使用项目本地图片 */
 .bg-layer{
     position:fixed; top:0; left:0; width:100%; height:100%;
     background-image:url('img/bg.png');
@@ -144,7 +143,7 @@ body{
     body.island-active{ margin-top:90px; }
 }
 
-/* 移动端隐藏部分元素，但保留播放器按钮的容器样式以便在更多菜单中使用 */
+/* 移动端隐藏部分元素 */
 @media(max-width:700px){
     .nav-item-wrapper.nav-item-player,.nav-item-wrapper.nav-item-wallpaper,
     .nav-item-wrapper.nav-item-emoji,.nav-item-wrapper.nav-item-bili,
@@ -178,23 +177,75 @@ body{
 .btn-primary{ background:var(--primary-500); color:white; }
 .btn-primary:hover{ background:var(--primary-600); }
 
-/* 悬浮播放器（移动端可考虑全屏，此处保留原样式，但增加移动端适配） */
-.floating-player{
-    position:fixed; width:540px; height:360px; background:#111827;
-    border:1px solid var(--primary-500); box-shadow:0 8px 30px rgba(6,182,212,0.3);
-    z-index:10000; opacity:0; visibility:hidden; transition:opacity 0.2s,visibility 0.2s;
-    display:flex; flex-direction:column;
+/* ========== 浮动播放器 ========== */
+.floating-player {
+    position: fixed;
+    width: 560px;                   /* 桌面端默认宽度 */
+    height: 380px;                  /* 稍微增加高度，避免内容被裁切 */
+    background: #111827;
+    border: 1px solid var(--primary-500);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s, visibility 0.25s;
+    display: flex;
+    flex-direction: column;
+    border-radius: 14px;
+    overflow: hidden;
+    /* 初始定位会在 JS 中动态设置 */
 }
-.floating-player.show{ opacity:1; visibility:visible; }
-.player-titlebar{
-    background:#1f2937; height:32px; display:flex; align-items:center; justify-content:space-between;
-    padding:0 8px; cursor:grab; user-select:none; border-bottom:1px solid var(--primary-500);
+.floating-player.show {
+    opacity: 1;
+    visibility: visible;
 }
-.player-titlebar .player-title{ color:var(--primary-400); font-size:0.85rem; }
-.win-btn{ background:none; border:none; color:var(--primary-400); cursor:pointer; }
-.win-btn.close:hover{ background:#ef4444; color:white; }
+.player-titlebar {
+    background: #1f2937;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    cursor: grab;
+    user-select: none;
+    border-bottom: 1px solid var(--primary-500);
+    color: #eef5ff;
+    font-weight: 500;
+}
+.win-btn {
+    background: none;
+    border: none;
+    color: var(--primary-400);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 8px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+.win-btn:hover {
+    color: white;
+}
+.win-btn.close:hover {
+    background: #ef4444;
+    color: white;
+}
 
-/* 提示工具 */
+/* 移动端浮动播放器：不会强制全屏，而是保持在屏幕中央的适中尺寸 */
+@media (max-width: 700px) {
+    .floating-player {
+        width: 90vw !important;
+        height: 60vh !important;
+        max-width: 500px;           /* 避免过宽 */
+        min-height: 300px;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        /* 保留拖拽能力需要把 transform 清除，但为了居中显示，暂时禁用拖拽在移动端，或者使用 top/left 配合 margin 居中 */
+        /* 注意：移动端拖拽可能会与居中冲突，下面在 JS 里做处理 */
+    }
+}
+
+/* ========== 提示工具 ========== */
 .btn-tooltip{
     position:fixed; background:rgba(0,0,0,0.85); color:white; font-size:12px;
     padding:5px 10px; border-left:2px solid var(--primary-500); z-index:10001;
@@ -279,15 +330,6 @@ body{
         min-height: var(--touch-target-size) !important;
         min-width: var(--touch-target-size) !important;
         font-size: 0.9rem !important;
-    }
-    /* 确保悬浮播放器在移动端保持合适尺寸，可全屏或限制比例 */
-    .floating-player {
-        width: 100vw !important;
-        height: 100vh !important;
-        max-width: 100vw;
-        max-height: 100vh;
-        left: 0 !important;
-        top: 0 !important;
     }
 }
 
