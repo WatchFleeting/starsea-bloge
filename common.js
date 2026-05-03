@@ -97,11 +97,6 @@ function updateLangButtons() {
             el.style.color = '';
         }
     });
-    const btn = document.getElementById('langToggleBtn');
-    if (btn) {
-        const langObj = SUPPORTED_LANGS.find(l => l.code === currentLang);
-        btn.textContent = langObj ? langObj.name : currentLang;
-    }
 }
 
 async function switchLanguage(langCode) {
@@ -109,10 +104,11 @@ async function switchLanguage(langCode) {
     await loadLanguage(langCode);
 }
 
-function toggleLanguage() {
-    const currentIndex = SUPPORTED_LANGS.findIndex(l => l.code === currentLang);
-    const nextIndex = (currentIndex + 1) % SUPPORTED_LANGS.length;
-    switchLanguage(SUPPORTED_LANGS[nextIndex].code);
+/* 移动端二级菜单切换（保留兼容） */
+function toggleMobileSubmenu(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = el.style.display === 'block' ? 'none' : 'block';
 }
 
 /* 初始化主题 */
@@ -132,119 +128,195 @@ function toggleTheme() {
 
 function updateThemeButtons() {
     const current = document.documentElement.getAttribute('data-theme');
-    const label = current === 'dark' ? (i18nData?.['theme_light'] || '亮色') : (i18nData?.['theme_dark'] || '暗色');
-    const btn = document.getElementById('themeToggleBtn');
-    if (btn) btn.textContent = label;
+    const label = current === 'dark'
+        ? (i18nData?.['theme_light'] || '亮色')
+        : (i18nData?.['theme_dark'] || '暗色');
+
+    const mobileLight = document.getElementById('themeMobileLight');
+    const mobileDark = document.getElementById('themeMobileDark');
+    if (mobileLight && mobileDark) {
+        mobileLight.style.fontWeight = current === 'light' ? 'bold' : 'normal';
+        mobileDark.style.fontWeight = current === 'dark' ? 'bold' : 'normal';
+    }
 }
 
-/* ================= 导航交互（重写版，汉堡菜单） ================= */
+/* ================= 导航交互（重写版） ================= */
 function initNavigation() {
-    const tb = document.getElementById('mainTopBar');
-    if (tb) {
-        function upd() {
-            if (innerWidth >= 701) {
-                tb.classList.toggle('island-mode', scrollY <= 30);
-                document.body.classList.toggle('island-active', scrollY <= 30);
-            }
-        }
-        addEventListener('scroll', upd, {passive: true});
-        addEventListener('resize', upd);
-        upd();
+    const topBar = document.getElementById('mainTopBar');
+    if (topBar) {
+        const updateIsland = () => {
+            const enable = window.innerWidth >= 701 && window.scrollY <= 30;
+            topBar.classList.toggle('island-mode', enable);
+            document.body.classList.toggle('island-active', enable);
+        };
+        window.addEventListener('scroll', updateIsland, { passive: true });
+        window.addEventListener('resize', updateIsland);
+        updateIsland();
     }
 
-    const navToggle = document.getElementById('navToggle');
-    const navLinks = document.getElementById('navLinks');
-    let overlay = document.querySelector('.nav-overlay');
-
-    if (navToggle && navLinks) {
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.className = 'nav-overlay';
-            document.body.appendChild(overlay);
-        }
-
-        function openMenu() {
-            navLinks.classList.add('active');
-            overlay.classList.add('active');
-            navToggle.setAttribute('aria-expanded', 'true');
-            document.body.style.overflow = 'hidden';
-        }
-        function closeMenu() {
-            navLinks.classList.remove('active');
-            overlay.classList.remove('active');
-            navToggle.setAttribute('aria-expanded', 'false');
-            document.body.style.overflow = '';
-        }
-
-        navToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            navLinks.classList.contains('active') ? closeMenu() : openMenu();
+    document.querySelectorAll('[data-tooltip-text]').forEach(btn => {
+        const tip = document.createElement('div');
+        tip.className = 'btn-tooltip';
+        tip.textContent = btn.dataset.tooltipText;
+        document.body.appendChild(tip);
+        btn.addEventListener('mouseenter', () => {
+            const rect = btn.getBoundingClientRect();
+            tip.style.left = Math.max(10, rect.left) + 'px';
+            tip.style.top = rect.bottom + 8 + 'px';
+            tip.classList.add('show');
         });
-
-        overlay.addEventListener('click', closeMenu);
-
-        navLinks.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                if (link.id === 'themeToggleBtn' || link.id === 'langToggleBtn') return;
-                if (innerWidth <= 700) closeMenu();
-            });
-        });
-    }
-
-    // 工具提示
-    document.querySelectorAll('[data-tooltip-text]').forEach(b => {
-        const t = document.createElement('div');
-        t.className = 'btn-tooltip';
-        t.textContent = b.dataset.tooltipText;
-        document.body.appendChild(t);
-        b.addEventListener('mouseenter', () => {
-            const r = b.getBoundingClientRect();
-            t.style.left = Math.max(10, r.left) + 'px';
-            t.style.top = r.bottom + 8 + 'px';
-            t.classList.add('show');
-        });
-        b.addEventListener('mouseleave', () => t.classList.remove('show'));
+        btn.addEventListener('mouseleave', () => tip.classList.remove('show'));
     });
 
-    // 主题按钮
-    const themeBtn = document.getElementById('themeToggleBtn');
-    if (themeBtn) {
-        themeBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            toggleTheme();
-        });
+    const moreBtn = document.getElementById('moreBtn');
+    if (moreBtn) {
+        const dropdown = document.createElement('div');
+        dropdown.className = 'custom-dropdown';
+        dropdown.id = 'unifiedMoreDropdown';
+        document.body.appendChild(dropdown);
+
+        const buildMenuItems = () => [
+            { href: 'background.html', i18n: 'image_library', text: '图片库' },
+            { href: 'emoji.html', i18n: 'emoji_pack', text: '表情包' },
+            { href: 'FriendURL.html', i18n: 'friends', text: '友链' },
+            { href: 'tags.html', i18n: 'tags', text: '标签' },
+            { href: 'log.html', i18n: 'log', text: '日志' },
+            { href: 'proxy-status.html', i18n: 'proxy_monitor', text: '代理监控' },
+            { href: 'https://afdian.com/a/lyxh-took', i18n: 'afdian', text: '爱发电', external: true },
+            { href: 'https://github.com/WatchFleeting', i18n: 'github', text: 'GitHub', external: true },
+            { type: 'hr' },
+            { id: 'mobilePlayerBtn', i18n: 'player', text: '🎵 播放器', action: () => document.getElementById('playerToggleBtn')?.click() },
+            { type: 'hr' },
+            { type: 'submenu', i18n: 'sw_theme', text: '主题 ▸', submenuId: 'themeSubmenu', items: [
+                { id: 'themeMobileLight', i18n: 'theme_light', text: '亮色', action: toggleTheme },
+                { id: 'themeMobileDark', i18n: 'theme_dark', text: '暗色', action: toggleTheme }
+            ]},
+            { type: 'submenu', i18n: 'sw_lang', text: '语言 ▸', submenuId: 'langSubmenu', items: SUPPORTED_LANGS.map(lang => ({
+                i18n: lang.code, text: lang.name, action: () => switchLanguage(lang.code), className: 'lang-option', dataLang: lang.code
+            }))}
+        ];
+
+        const renderMenu = () => {
+            dropdown.innerHTML = '';
+            const items = buildMenuItems();
+            items.forEach(item => {
+                if (item.type === 'hr') {
+                    dropdown.appendChild(document.createElement('hr'));
+                } else if (item.type === 'submenu') {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'submenu-item';
+                    wrapper.style.display = 'flex';
+                    wrapper.style.alignItems = 'center';
+                    const toggleLink = document.createElement('a');
+                    toggleLink.href = '#';
+                    toggleLink.setAttribute('data-i18n', item.i18n);
+                    toggleLink.textContent = item.text;
+                    toggleLink.style.flex = '1';
+                    toggleLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const sub = document.getElementById(item.submenuId);
+                        if (sub) sub.style.display = sub.style.display === 'block' ? 'none' : 'block';
+                    });
+                    wrapper.appendChild(toggleLink);
+                    const subList = document.createElement('div');
+                    subList.id = item.submenuId;
+                    subList.className = 'submenu-list';
+                    subList.style.display = 'none';
+                    subList.style.paddingLeft = '12px';
+                    item.items.forEach(subItem => {
+                        const subLink = document.createElement('a');
+                        subLink.href = '#';
+                        if (subItem.id) subLink.id = subItem.id;
+                        if (subItem.i18n) subLink.setAttribute('data-i18n', subItem.i18n);
+                        if (subItem.className) subLink.className = subItem.className;
+                        if (subItem.dataLang) subLink.setAttribute('data-lang', subItem.dataLang);
+                        subLink.textContent = subItem.text;
+                        subLink.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            if (subItem.action) subItem.action();
+                        });
+                        subList.appendChild(subLink);
+                    });
+                    dropdown.appendChild(wrapper);
+                    dropdown.appendChild(subList);
+                } else {
+                    const link = document.createElement('a');
+                    link.href = item.href || '#';
+                    if (item.i18n) link.setAttribute('data-i18n', item.i18n);
+                    link.textContent = item.text;
+                    if (item.external) link.target = '_blank';
+                    if (item.id) link.id = item.id;
+                    if (item.action) {
+                        link.href = '#';
+                        link.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            item.action();
+                        });
+                    }
+                    dropdown.appendChild(link);
+                }
+            });
+        };
+
+        renderMenu();
+
+        let isOpen = false;
+        const show = () => {
+            const rect = moreBtn.getBoundingClientRect();
+            dropdown.style.left = Math.min(rect.right - dropdown.offsetWidth, innerWidth - dropdown.offsetWidth - 10) + 'px';
+            dropdown.style.top = rect.bottom + 8 + 'px';
+            dropdown.classList.add('show');
+            isOpen = true;
+        };
+        const hide = () => {
+            dropdown.classList.remove('show');
+            isOpen = false;
+        };
+
+        const isMobile = () => window.innerWidth <= 700;
+
+        if (isMobile()) {
+            moreBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (isOpen) hide(); else show();
+            });
+            document.addEventListener('click', (e) => {
+                if (isOpen && !dropdown.contains(e.target) && !moreBtn.contains(e.target)) hide();
+            });
+        } else {
+            let timer;
+            moreBtn.addEventListener('mouseenter', () => {
+                clearTimeout(timer);
+                show();
+            });
+            moreBtn.addEventListener('mouseleave', () => {
+                timer = setTimeout(hide, 200);
+            });
+            dropdown.addEventListener('mouseenter', () => clearTimeout(timer));
+            dropdown.addEventListener('mouseleave', () => hide());
+        }
     }
 
-    // 语言切换
-    const langBtn = document.getElementById('langToggleBtn');
-    if (langBtn) {
-        langBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            toggleLanguage();
+    const backBtn = document.getElementById('backToTopBtn');
+    if (backBtn) {
+        window.addEventListener('scroll', () => {
+            backBtn.style.opacity = window.scrollY > 200 ? '1' : '0';
+            backBtn.style.visibility = window.scrollY > 200 ? 'visible' : 'hidden';
         });
-    }
-
-    // 返回顶部
-    const bb = document.getElementById('backToTopBtn');
-    if (bb) {
-        addEventListener('scroll', () => {
-            const s = scrollY > 200;
-            bb.style.opacity = s ? '1' : '0';
-            bb.style.visibility = s ? 'visible' : 'hidden';
-        });
-        bb.addEventListener('click', () => scrollTo({top: 0, behavior: 'smooth'}));
+        backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
     }
 }
 
 /* ================= 浮动播放器核心逻辑 ================= */
 function initPlayer(){
-    const p=document.getElementById('floatingPlayer');
-    const f=document.getElementById('playerIframe');
-    const PUR='Vocaloidplayer.html';
+    const p = document.getElementById('floatingPlayer');
+    const f = document.getElementById('playerIframe');
+    const PUR = 'Vocaloidplayer.html';
 
     if (!p || !f) return;
 
-    let open=false, min=false, pos={left:null,top:null}, drag=false, ox=0, oy=0;
+    let open = false, min = false, pos = {left:null,top:null}, drag = false, ox = 0, oy = 0;
 
     function show(tr, us=false){
         p.classList.remove('minimizing');
@@ -255,28 +327,37 @@ function initPlayer(){
                 let t = r.bottom + 8;
                 if (l + 580 > innerWidth - 16) l = innerWidth - 596;
                 if (l < 16) l = 16;
-                if (t + 400 > innerHeight - 16) t = r.top - 408;
+                if (t + 420 > innerHeight - 16) t = r.top - 428;
                 if (t < 0) t = 16;
                 p.style.left = l + 'px';
                 p.style.top = t + 'px';
+                p.style.transform = '';
                 pos = {left: l, top: t};
             } else if (pos.left != null) {
                 p.style.left = pos.left + 'px';
                 p.style.top = pos.top + 'px';
+                p.style.transform = '';
             } else {
                 p.style.left = (innerWidth - 580) / 2 + 'px';
-                p.style.top = (innerHeight - 400) / 2 + 'px';
+                p.style.top = (innerHeight - 420) / 2 + 'px';
+                p.style.transform = '';
             }
         } else {
-            p.style.left = ''; p.style.top = '';
+            p.style.left = '';
+            p.style.top = '';
+            p.style.transform = '';
         }
+
         if (!open && f.src === 'about:blank') f.src = PUR;
         p.classList.add('show');
-        open = true; min = false;
+        open = true;
+        min = false;
     }
 
     function close(){
-        p.classList.remove('show'); open = false; min = false;
+        p.classList.remove('show');
+        open = false;
+        min = false;
         f.src = 'about:blank';
     }
 
@@ -285,12 +366,18 @@ function initPlayer(){
         min = true;
         p.classList.add('minimizing');
         setTimeout(() => {
-            if (min) { p.classList.remove('show','minimizing'); open = false; }
+            if (min) {
+                p.classList.remove('show','minimizing');
+                open = false;
+            }
         }, 350);
     }
 
     function maximize(){
-        if (open) { window.open(PUR, '_blank'); close(); }
+        if (open) {
+            window.open(PUR, '_blank');
+            close();
+        }
     }
 
     const titlebar = document.getElementById('playerTitlebar');
@@ -315,6 +402,7 @@ function initPlayer(){
         t = Math.max(4, Math.min(t, innerHeight - p.offsetHeight - 4));
         p.style.left = l + 'px';
         p.style.top = t + 'px';
+        p.style.transform = '';
         pos = {left: l, top: t};
     }
 
@@ -335,7 +423,7 @@ function initPlayer(){
     document.getElementById('winCloseBtn')?.addEventListener('click', close);
 }
 
-/* 动态 Favicon（4个图标） */
+/* 动态 Favicon（4个图标循环） */
 function initFavicon(){
     const icons=['img/ico_1.ico','img/ico_2.ico','img/ico_3.ico','img/ico_4.ico'];
     let i=0;
