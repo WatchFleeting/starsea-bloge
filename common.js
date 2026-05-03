@@ -97,6 +97,11 @@ function updateLangButtons() {
             el.style.color = '';
         }
     });
+    const btn = document.getElementById('langToggleBtn');
+    if (btn) {
+        const langObj = SUPPORTED_LANGS.find(l => l.code === currentLang);
+        btn.textContent = langObj ? langObj.name : currentLang;
+    }
 }
 
 async function switchLanguage(langCode) {
@@ -104,11 +109,10 @@ async function switchLanguage(langCode) {
     await loadLanguage(langCode);
 }
 
-/* 移动端二级菜单切换 */
-function toggleMobileSubmenu(id) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.style.display = el.style.display === 'block' ? 'none' : 'block';
+function toggleLanguage() {
+    const currentIndex = SUPPORTED_LANGS.findIndex(l => l.code === currentLang);
+    const nextIndex = (currentIndex + 1) % SUPPORTED_LANGS.length;
+    switchLanguage(SUPPORTED_LANGS[nextIndex].code);
 }
 
 /* 初始化主题 */
@@ -128,108 +132,108 @@ function toggleTheme() {
 
 function updateThemeButtons() {
     const current = document.documentElement.getAttribute('data-theme');
-    const label = current === 'dark'
-        ? (i18nData?.['theme_light'] || '亮色')
-        : (i18nData?.['theme_dark'] || '暗色');
-
-    const mobileLight = document.getElementById('themeMobileLight');
-    const mobileDark = document.getElementById('themeMobileDark');
-    if (mobileLight && mobileDark) {
-        mobileLight.style.fontWeight = current === 'light' ? 'bold' : 'normal';
-        mobileDark.style.fontWeight = current === 'dark' ? 'bold' : 'normal';
-    }
+    const label = current === 'dark' ? (i18nData?.['theme_light'] || '亮色') : (i18nData?.['theme_dark'] || '暗色');
+    const btn = document.getElementById('themeToggleBtn');
+    if (btn) btn.textContent = label;
 }
 
-/* ================= 导航交互（统一更多菜单，移除设置按钮） ================= */
-function initNavigation(){
-    const tb=document.getElementById('mainTopBar');
-    if(tb){
-        function upd(){ if(innerWidth>=701){ tb.classList.toggle('island-mode',scrollY<=30); document.body.classList.toggle('island-active',scrollY<=30); } }
-        addEventListener('scroll',upd,{passive:true}); addEventListener('resize',upd); upd();
+/* ================= 导航交互（重写版，汉堡菜单） ================= */
+function initNavigation() {
+    const tb = document.getElementById('mainTopBar');
+    if (tb) {
+        function upd() {
+            if (innerWidth >= 701) {
+                tb.classList.toggle('island-mode', scrollY <= 30);
+                document.body.classList.toggle('island-active', scrollY <= 30);
+            }
+        }
+        addEventListener('scroll', upd, {passive: true});
+        addEventListener('resize', upd);
+        upd();
     }
-    document.querySelectorAll('[data-tooltip-text]').forEach(b=>{
-        const t=document.createElement('div'); t.className='btn-tooltip'; t.textContent=b.dataset.tooltipText;
-        document.body.appendChild(t);
-        b.addEventListener('mouseenter',()=>{ const r=b.getBoundingClientRect(); t.style.left=Math.max(10,r.left)+'px'; t.style.top=r.bottom+8+'px'; t.classList.add('show'); });
-        b.addEventListener('mouseleave',()=>t.classList.remove('show'));
-    });
 
-    // 统一“更多”菜单（桌面+移动）
-    const mb=document.getElementById('moreBtn');
-    if(mb){
-        const dd=document.createElement('div'); dd.className='custom-dropdown';
-        dd.setAttribute('id', 'unifiedMoreDropdown');
-        dd.innerHTML=`
-            <a href="background.html" data-i18n="image_library">图片库</a>
-            <a href="emoji.html" data-i18n="emoji_pack">表情包</a>
-            <a href="FriendURL.html" data-i18n="friends">友链</a>
-            <a href="tags.html" data-i18n="tags">标签</a>
-            <a href="log.html" data-i18n="log">日志</a>
-            <a href="proxy-status.html" data-i18n="proxy_monitor">代理监控</a>
-            <a href="https://afdian.com/a/lyxh-took" target="_blank" data-i18n="afdian">爱发电</a>
-            <a href="https://github.com/WatchFleeting" target="_blank" data-i18n="github">GitHub</a>
-            <hr>
-            <a href="#" id="mobilePlayerBtn" data-i18n="player">🎵 播放器</a>
-            <hr>
-            <div class="submenu-item" style="display:flex; align-items:center;">
-                <a href="#" onclick="event.stopPropagation(); toggleMobileSubmenu('themeSubmenuUnified')" data-i18n="sw_theme" style="flex:1;">主题 ▸</a>
-            </div>
-            <div id="themeSubmenuUnified" class="submenu-list" style="display:none; padding-left:12px;">
-                <a href="#" id="themeMobileLight" onclick="toggleTheme()" data-i18n="theme_light">亮色</a>
-                <a href="#" id="themeMobileDark" onclick="toggleTheme()" data-i18n="theme_dark">暗色</a>
-            </div>
-            <div class="submenu-item" style="display:flex; align-items:center;">
-                <a href="#" onclick="event.stopPropagation(); toggleMobileSubmenu('langSubmenuUnified')" data-i18n="sw_lang" style="flex:1;">语言 ▸</a>
-            </div>
-            <div id="langSubmenuUnified" class="submenu-list" style="display:none; padding-left:12px;">
-                ${SUPPORTED_LANGS.map(lang => `<a href="#" data-lang="${lang.code}" class="lang-option" onclick="switchLanguage('${lang.code}')">${lang.name}</a>`).join('')}
-            </div>
-        `;
-        document.body.appendChild(dd);
+    const navToggle = document.getElementById('navToggle');
+    const navLinks = document.getElementById('navLinks');
+    let overlay = document.querySelector('.nav-overlay');
 
-        // 播放器入口
-        const mobilePlayer = dd.querySelector('#mobilePlayerBtn');
-        if (mobilePlayer) mobilePlayer.addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('playerToggleBtn')?.click();
+    if (navToggle && navLinks) {
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'nav-overlay';
+            document.body.appendChild(overlay);
+        }
+
+        function openMenu() {
+            navLinks.classList.add('active');
+            overlay.classList.add('active');
+            navToggle.setAttribute('aria-expanded', 'true');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeMenu() {
+            navLinks.classList.remove('active');
+            overlay.classList.remove('active');
+            navToggle.setAttribute('aria-expanded', 'false');
+            document.body.style.overflow = '';
+        }
+
+        navToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navLinks.classList.contains('active') ? closeMenu() : openMenu();
         });
 
-        const isMobile = () => window.innerWidth <= 700;
-        let currentOpen = false;
+        overlay.addEventListener('click', closeMenu);
 
-        function showMenu() {
-            const r = mb.getBoundingClientRect();
-            dd.style.left = Math.min(r.right - dd.offsetWidth, innerWidth - dd.offsetWidth - 10) + 'px';
-            dd.style.top = r.bottom + 8 + 'px';
-            dd.classList.add('show');
-            currentOpen = true;
-        }
-        function hideMenu() {
-            dd.classList.remove('show');
-            currentOpen = false;
-        }
-        function toggleMenu(e) {
-            e.stopPropagation();
-            if (currentOpen) hideMenu();
-            else showMenu();
-        }
-
-        if (isMobile()) {
-            mb.addEventListener('click', toggleMenu);
-            document.addEventListener('click', e => {
-                if (!dd.contains(e.target) && e.target !== mb && !mb.contains(e.target)) hideMenu();
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (link.id === 'themeToggleBtn' || link.id === 'langToggleBtn') return;
+                if (innerWidth <= 700) closeMenu();
             });
-        } else {
-            let timer;
-            mb.addEventListener('mouseenter', () => { clearTimeout(timer); showMenu(); });
-            mb.addEventListener('mouseleave', () => { timer = setTimeout(hideMenu, 200); });
-            dd.addEventListener('mouseenter', () => clearTimeout(timer));
-            dd.addEventListener('mouseleave', () => hideMenu());
-        }
+        });
     }
 
-    const bb=document.getElementById('backToTopBtn');
-    if(bb){ addEventListener('scroll',()=>{ const s=scrollY>200; bb.style.opacity=s?'1':'0'; bb.style.visibility=s?'visible':'hidden'; }); bb.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'})); }
+    // 工具提示
+    document.querySelectorAll('[data-tooltip-text]').forEach(b => {
+        const t = document.createElement('div');
+        t.className = 'btn-tooltip';
+        t.textContent = b.dataset.tooltipText;
+        document.body.appendChild(t);
+        b.addEventListener('mouseenter', () => {
+            const r = b.getBoundingClientRect();
+            t.style.left = Math.max(10, r.left) + 'px';
+            t.style.top = r.bottom + 8 + 'px';
+            t.classList.add('show');
+        });
+        b.addEventListener('mouseleave', () => t.classList.remove('show'));
+    });
+
+    // 主题按钮
+    const themeBtn = document.getElementById('themeToggleBtn');
+    if (themeBtn) {
+        themeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleTheme();
+        });
+    }
+
+    // 语言切换
+    const langBtn = document.getElementById('langToggleBtn');
+    if (langBtn) {
+        langBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleLanguage();
+        });
+    }
+
+    // 返回顶部
+    const bb = document.getElementById('backToTopBtn');
+    if (bb) {
+        addEventListener('scroll', () => {
+            const s = scrollY > 200;
+            bb.style.opacity = s ? '1' : '0';
+            bb.style.visibility = s ? 'visible' : 'hidden';
+        });
+        bb.addEventListener('click', () => scrollTo({top: 0, behavior: 'smooth'}));
+    }
 }
 
 /* ================= 浮动播放器核心逻辑 ================= */
@@ -247,41 +251,32 @@ function initPlayer(){
         if (window.innerWidth > 700) {
             if (!us && tr) {
                 const r = tr.getBoundingClientRect();
-                let l = r.left + r.width/2 - 290;   // 对应新宽度580
+                let l = r.left + r.width/2 - 290;
                 let t = r.bottom + 8;
                 if (l + 580 > innerWidth - 16) l = innerWidth - 596;
                 if (l < 16) l = 16;
-                if (t + 420 > innerHeight - 16) t = r.top - 428;
+                if (t + 400 > innerHeight - 16) t = r.top - 408;
                 if (t < 0) t = 16;
                 p.style.left = l + 'px';
                 p.style.top = t + 'px';
-                p.style.transform = '';
                 pos = {left: l, top: t};
             } else if (pos.left != null) {
                 p.style.left = pos.left + 'px';
                 p.style.top = pos.top + 'px';
-                p.style.transform = '';
             } else {
                 p.style.left = (innerWidth - 580) / 2 + 'px';
-                p.style.top = (innerHeight - 420) / 2 + 'px';
-                p.style.transform = '';
+                p.style.top = (innerHeight - 400) / 2 + 'px';
             }
         } else {
-            p.style.left = '';
-            p.style.top = '';
-            p.style.transform = '';
+            p.style.left = ''; p.style.top = '';
         }
-
         if (!open && f.src === 'about:blank') f.src = PUR;
         p.classList.add('show');
-        open = true;
-        min = false;
+        open = true; min = false;
     }
 
     function close(){
-        p.classList.remove('show');
-        open = false;
-        min = false;
+        p.classList.remove('show'); open = false; min = false;
         f.src = 'about:blank';
     }
 
@@ -320,7 +315,6 @@ function initPlayer(){
         t = Math.max(4, Math.min(t, innerHeight - p.offsetHeight - 4));
         p.style.left = l + 'px';
         p.style.top = t + 'px';
-        p.style.transform = '';
         pos = {left: l, top: t};
     }
 
@@ -341,7 +335,7 @@ function initPlayer(){
     document.getElementById('winCloseBtn')?.addEventListener('click', close);
 }
 
-/* 动态 Favicon（4个图标循环） */
+/* 动态 Favicon（4个图标） */
 function initFavicon(){
     const icons=['img/ico_1.ico','img/ico_2.ico','img/ico_3.ico','img/ico_4.ico'];
     let i=0;
