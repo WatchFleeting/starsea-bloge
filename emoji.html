@@ -70,6 +70,19 @@
 <script>
     const EMOJI_BASE_URL = 'https://xxdz-official.github.io/x/emoji/';
 
+    /**
+     * 将原始分类名转换为友好显示名称
+     * 规则：匹配 "前缀_emoji_编号" 格式 → "前缀の表情包第编号弹"
+     * 否则返回原始名称
+     */
+    function getDisplayCategory(category) {
+        const match = category.match(/^(.+)_emoji_(\d+)$/);
+        if (match) {
+            return `${match[1]}の表情包第${match[2]}弹`;
+        }
+        return category; // 不符合规则则保持原样
+    }
+
     async function loadEmojis() {
         try {
             const emojis = await loadJSON('data/emojis.json');
@@ -85,12 +98,13 @@
 
             let html = '';
             for (const [category, items] of Object.entries(sections)) {
-                // 为该分类生成独立的下载全部按钮（链接指向对应 ZIP）
+                const displayName = getDisplayCategory(category);
                 const zipUrl = `./emoji/${encodeURIComponent(category)}.zip`;
+
                 html += `
                     <div class="emoji-section">
                         <div class="section-header">
-                            <h2>${escapeHtml(category)}</h2>
+                            <h2>${escapeHtml(displayName)}</h2>
                             <a href="${zipUrl}" class="download-all-btn" download>
                                 <i class="fas fa-download"></i> 下载全部
                             </a>
