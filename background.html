@@ -36,9 +36,10 @@
         .card-info h3 { font-size: 1rem; font-weight: 600; }
         .download-btn {
             background: var(--bg-card); border: 1px solid var(--border-light);
-            border-radius: 40px; padding: 6px 16px; font-size: 0.8rem;
-            font-weight: 600; color: var(--text-title); text-decoration: none;
-            display: inline-flex; align-items: center; gap: 6px; transition: var(--transition);
+            border-radius: 40px; padding: 6px 16px; font-size: 0.8rem; font-weight: 600;
+            color: var(--text-title); text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px;
+            transition: var(--transition);
         }
         .download-btn:hover { background: var(--primary-500); border-color: var(--primary-500); color: white; }
         .badge-series {
@@ -47,11 +48,40 @@
             padding: 4px 10px; font-size: 0.7rem; font-weight: 600; color: white;
             border-left: 2px solid white; z-index: 2;
         }
-        .video-indicator {
+        .video-indicator, .gallery-indicator {
             position: absolute; bottom: 8px; right: 8px;
             background: rgba(0,0,0,0.6); color: white; font-size: 0.7rem;
             padding: 4px 8px; backdrop-filter: blur(4px); border-radius: 4px;
         }
+
+        /* 图集全屏查看 */
+        .gallery-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.92); z-index:20000;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column;
+        }
+        .gallery-overlay img {
+            max-width: 90vw; max-height: 80vh; object-fit: contain;
+            border-radius: 8px; box-shadow: 0 0 20px rgba(6,182,212,0.3);
+        }
+        .gallery-controls {
+            display: flex; gap: 20px; margin-top: 16px; align-items: center;
+        }
+        .gallery-nav-btn {
+            background: var(--primary-500); border: none; color: white;
+            font-size: 1.5rem; padding: 8px 16px; border-radius: 8px;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .gallery-nav-btn:hover { background: var(--primary-600); }
+        .gallery-close-btn {
+            position: absolute; top: 16px; right: 16px;
+            background: rgba(0,0,0,0.6); border: none; color: white;
+            font-size: 2rem; width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+
         @media (max-width: 600px) {
             .wallpaper-grid { gap: 1rem; }
             .card-info h3 { font-size: 0.9rem; }
@@ -70,10 +100,18 @@
     // 本地备用路径
     const LOCAL_BASE = './background/';
 
+    // 获取资源完整 URL（优先 WebOS 直链，否则拼接本地路径）
+    function getUrl(filename) {
+        const webosUrl = getWebosUrl('wallpapers', filename);
+        if (webosUrl) return webosUrl;
+        return LOCAL_BASE + encodeURIComponent(filename);
+    }
+
     async function loadWallpapers() {
         try {
             const data = await loadJSON('data/wallpapers.json');
 
+            // 按 series 分组
             const groups = {};
             data.forEach(item => {
                 const key = item.series || '其他';
@@ -81,59 +119,146 @@
                 groups[key].push(item);
             });
 
-            const container = document.getElementById('wallpaperSections');
             let html = '';
-
             for (const [series, items] of Object.entries(groups)) {
                 html += `
                     <div class="wallpaper-section">
                         <div class="section-header"><h2>${escapeHtml(series)}</h2></div>
-                        <div class="wallpaper-grid" id="grid-${escapeHtml(series)}">
+                        <div class="wallpaper-grid">
                             ${items.map(generateCard).join('')}
                         </div>
                     </div>`;
             }
 
-            container.innerHTML = html || '<div class="error-text">暂无图片</div>';
+            document.getElementById('wallpaperSections').innerHTML = html || '<div class="error-text">暂无图片</div>';
 
+            // 绑定卡片点击事件
             document.querySelectorAll('.card-preview').forEach(el => el.addEventListener('click', function(e) {
                 if (e.target.closest('.download-btn')) return;
-                const url = this.getAttribute('data-full');
-                const isDynamic = this.getAttribute('data-is-dynamic') === 'true';
-                if (isDynamic) showDynamicFullscreen(url);
-                else showImagePreview(url);
+                const type = this.dataset.type;
+                if (type === 'gallery') {
+                    const images = JSON.parse(decodeURIComponent(this.dataset.images));
+                    showGallery(images);
+                } else if (type === 'dynamic_preview') {
+                    showDynamicFullscreen(this.dataset.full);
+                } else {
+                    showImagePreview(this.dataset.full);
+                }
             }));
+
         } catch (error) {
             console.error('图片库加载失败:', error);
             document.getElementById('wallpaperSections').innerHTML = '<div class="error-text">⚠️ 图片库数据加载失败</div>';
         }
     }
 
-    function getWallpaperUrl(filename) {
-        // 优先使用 WebOS 直链
-        const webosUrl = getWebosUrl('wallpapers', filename);
-        if (webosUrl) return webosUrl;
-        // 否则回退到本地
-        return LOCAL_BASE + encodeURIComponent(filename);
-    }
-
     function generateCard(item) {
-        const previewUrl = getWallpaperUrl(item.filename);
-        const downloadUrl = getWallpaperUrl(item.filename);
+        const isGallery = (item.type === 'gallery') && Array.isArray(item.images);
         const isDynamic = (item.type === 'dynamic_preview');
-        let mediaTag = isDynamic
-            ? `<video src="${previewUrl}" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>`
-            : `<img src="${previewUrl}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.src='img/fallback.png'">`;
+
+        // 预览图：图集用第一张，其他用自身的 filename
+        const previewFilename = isGallery ? item.images[0] : item.filename;
+        const previewUrl = getUrl(previewFilename);
+        const fullUrl = isGallery ? previewUrl : getUrl(item.filename); // 单击全屏查看用的 URL
+
+        // 下载链接：图集优先下载 zip（如果有），否则下载第一张图
+        let downloadUrl;
+        if (isGallery && item.zip) {
+            downloadUrl = getUrl(item.zip);
+        } else {
+            downloadUrl = fullUrl;
+        }
+
+        // 媒体标签
+        let mediaTag;
+        if (isDynamic) {
+            mediaTag = `<video src="${previewUrl}" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>`;
+        } else {
+            mediaTag = `<img src="${previewUrl}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.src='img/fallback.png'">`;
+        }
+
+        // 系列角标
         const seriesHtml = item.series ? `<div class="badge-series">${item.series}</div>` : '';
-        const indicatorHtml = isDynamic ? `<div class="video-indicator">🎬 动态图片</div>` : '';
+
+        // 类型指示器
+        let typeIndicator = '';
+        if (isGallery) {
+            typeIndicator = `<div class="gallery-indicator">🖼️ 图集 (${item.images.length}张)</div>`;
+        } else if (isDynamic) {
+            typeIndicator = `<div class="video-indicator">🎬 动态图片</div>`;
+        }
+
+        // 图集数据存储
+        const dataType = isGallery ? 'gallery' : item.type;
+        const dataImages = isGallery ? encodeURIComponent(JSON.stringify(item.images.map(img => getUrl(img)))) : '';
+
+        // B站链接
         const infoLink = item.bili || '#';
-        return `<div class="wallpaper-card"><div class="card-preview" data-full="${downloadUrl}" data-is-dynamic="${isDynamic}">${seriesHtml}${mediaTag}${indicatorHtml}</div><div class="card-info"><h3>${escapeHtml(item.name)}</h3><div style="display:flex; gap:8px;"><a class="download-btn" href="${infoLink}" target="_blank"><i class="fas fa-info-circle"></i></a><a class="download-btn" href="${downloadUrl}" download="${escapeHtml(item.filename)}" target="_blank"><i class="fas fa-download"></i> 下载</a></div></div></div>`;
+
+        // 下载文件名
+        const downloadFileName = isGallery && item.zip ? item.zip : item.filename;
+
+        return `<div class="wallpaper-card">
+            <div class="card-preview" data-full="${fullUrl}" data-type="${dataType}" data-images="${dataImages}">
+                ${seriesHtml}${mediaTag}${typeIndicator}
+            </div>
+            <div class="card-info">
+                <h3>${escapeHtml(item.name)}</h3>
+                <div style="display:flex; gap:8px;">
+                    <a class="download-btn" href="${infoLink}" target="_blank" title="查看详情">
+                        <i class="fas fa-info-circle"></i>
+                    </a>
+                    <a class="download-btn" href="${downloadUrl}" download="${escapeHtml(downloadFileName)}" target="_blank" title="下载">
+                        <i class="fas fa-download"></i> 下载
+                    </a>
+                </div>
+            </div></div>`;
     }
 
+    // ========== 图集浏览 ==========
+    let currentGallery = [];
+
+    function showGallery(images) {
+        currentGallery = images;
+        renderGallery(0);
+    }
+
+    function renderGallery(index) {
+        const old = document.querySelector('.gallery-overlay');
+        if (old) old.remove();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'gallery-overlay';
+        overlay.innerHTML = `
+            <button class="gallery-close-btn">&times;</button>
+            <img src="${currentGallery[index]}" alt="图集">
+            <div class="gallery-controls">
+                <button class="gallery-nav-btn" id="galleryPrev"><i class="fas fa-chevron-left"></i></button>
+                <span style="color:white;">${index + 1} / ${currentGallery.length}</span>
+                <button class="gallery-nav-btn" id="galleryNext"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        overlay.querySelector('.gallery-close-btn').onclick = () => overlay.remove();
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+        overlay.querySelector('#galleryPrev').onclick = () => {
+            const newIndex = (index - 1 + currentGallery.length) % currentGallery.length;
+            renderGallery(newIndex);
+        };
+        overlay.querySelector('#galleryNext').onclick = () => {
+            const newIndex = (index + 1) % currentGallery.length;
+            renderGallery(newIndex);
+        };
+    }
+
+    // ========== 单图/动态预览 ==========
     function showImagePreview(url) {
         let overlay = document.querySelector('.image-preview-overlay');
         if (!overlay) {
-            overlay = document.createElement('div'); overlay.className = 'image-preview-overlay';
+            overlay = document.createElement('div');
+            overlay.className = 'image-preview-overlay';
             overlay.innerHTML = '<button class="image-preview-close">&times;</button><img class="image-preview-img">';
             document.body.appendChild(overlay);
             overlay.querySelector('.image-preview-close').onclick = () => overlay.classList.remove('active');
