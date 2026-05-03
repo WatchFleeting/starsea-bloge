@@ -58,24 +58,21 @@
     color: #38bdf8;
 }
 
-/* 下拉菜单（更多 / 设置）暗色适配 */
+/* 下拉菜单暗色适配 */
 [data-theme="dark"] .custom-dropdown,
 [data-theme="dark"] .lang-dropdown {
     background: rgba(30, 41, 59, 0.95);
     border-color: #0ea5e9;
 }
-/* 二级菜单背景透明（继承父级深色），文字亮色 */
 [data-theme="dark"] .submenu-list {
     background: transparent;
 }
-/* 所有菜单内的链接文字 */
 [data-theme="dark"] .custom-dropdown a,
 [data-theme="dark"] .lang-dropdown a,
 [data-theme="dark"] .submenu-item a,
 [data-theme="dark"] .submenu-list a {
     color: #e2e8f0;
 }
-/* 悬停效果 */
 [data-theme="dark"] .custom-dropdown a:hover,
 [data-theme="dark"] .lang-dropdown a:hover,
 [data-theme="dark"] .submenu-item a:hover,
@@ -235,7 +232,7 @@ body{
     background:var(--bg-page); color:var(--primary-600);
 }
 
-/* 二级子菜单默认隐藏，点击后展开 */
+/* 二级子菜单默认隐藏 */
 .submenu-list { display: none; }
 
 /* ========== 文章弹窗 ========== */
@@ -282,4 +279,9 @@ body{
         min-width: var(--touch-target-size) !important;
         font-size: 0.9rem !important;
     }
+}
+
+/* ========== 全局自定义光标（罗小黑） ========== */
+* {
+    cursor: url('img/zhengchang_luoxiaohei.gif') 16 16, auto;
 }
