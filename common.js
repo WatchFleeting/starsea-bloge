@@ -269,7 +269,6 @@ function initPlayer(){
             const r = tr.getBoundingClientRect();
             let l = r.left + r.width/2 - 280;
             let t = r.bottom + 8;
-            // 避免超出屏幕
             if (l + 560 > innerWidth - 16) l = innerWidth - 576;
             if (l < 16) l = 16;
             if (t + 380 > innerHeight - 16) t = r.top - 388;
@@ -281,7 +280,6 @@ function initPlayer(){
             p.style.left = pos.left + 'px';
             p.style.top = pos.top + 'px';
         } else {
-            // 无位置信息时居中
             p.style.left = (innerWidth - 560) / 2 + 'px';
             p.style.top = (innerHeight - 380) / 2 + 'px';
         }
@@ -318,7 +316,6 @@ function initPlayer(){
         }
     }
 
-    // 拖拽
     const titlebar = document.getElementById('playerTitlebar');
     if (titlebar) {
         titlebar.addEventListener('mousedown', (e) => {
@@ -350,7 +347,6 @@ function initPlayer(){
         removeEventListener('mouseup', stopDrag);
     }
 
-    // 绑定按钮
     document.getElementById('playerToggleBtn')?.addEventListener('click', (e) => {
         e.preventDefault();
         if (min) show(document.getElementById('playerNavItem'), true);
@@ -361,12 +357,10 @@ function initPlayer(){
     document.getElementById('winMaximizeBtn')?.addEventListener('click', maximize);
     document.getElementById('winCloseBtn')?.addEventListener('click', close);
 
-    // 移动端居中展示，禁用拖拽（简化交互）
     if (window.innerWidth <= 700) {
         p.style.left = '50%';
         p.style.top = '50%';
         p.style.transform = 'translate(-50%, -50%)';
-        // 拖拽会破坏居中，移除拖拽监听
         if (titlebar) {
             titlebar.style.cursor = 'default';
             titlebar.removeEventListener('mousedown', null);
@@ -377,11 +371,25 @@ function initPlayer(){
 /* 动态 Favicon */
 function initFavicon(){ const icons=['img/ico_1.ico','img/ico_2.ico','img/ico_3.ico']; let i=0; const l=document.getElementById('dynamic-favicon'); if(l)setInterval(()=>{ l.href=icons[i=(i+1)%3]; },1000); }
 
-/* 文章系统 */
-async function loadArticleIndex(){ return await loadJSON('data-index.json'); }
+/* ========== 文章系统（增强错误提示） ========== */
+async function loadArticleIndex() {
+    try {
+        const data = await loadJSON('data-index.json');
+        console.log('✅ data-index.json 加载成功');
+        return data;
+    } catch (e) {
+        console.error('❌ data-index.json 加载失败，请检查文件是否存在', e);
+        throw e;
+    }
+}
 async function loadMarkdownArticle(path){
     try{
-        const r=await fetch(path); if(!r.ok)return null; const t=await r.text(); const lines=t.split('\n');
+        const r=await fetch(path); 
+        if(!r.ok) {
+            console.warn(`⚠️ 文件可能不存在: ${path}，状态码: ${r.status}`);
+            return null;
+        }
+        const t=await r.text(); const lines=t.split('\n');
         if(lines[0].trim()==='---'){
             const end=lines.indexOf('---',1); if(end>0){
                 const meta={}; const y=lines.slice(1,end);
@@ -399,34 +407,74 @@ async function loadMarkdownArticle(path){
             }
         }
         return {meta:{title:'无标题'},content:t};
-    }catch(e){ console.warn('文章加载失败',path,e); return null; }
+    }catch(e){ 
+        console.warn('文章加载失败',path,e); 
+        return null; 
+    }
 }
 
 async function getAllArticles(){
-    const idx=await loadArticleIndex();
-    const arts=[];
-    if(idx.articles) for(const p of idx.articles){ const a=await loadMarkdownArticle(p); if(a)arts.push(a); }
-    arts.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return arts;
+    try {
+        const idx=await loadArticleIndex();
+        const arts=[];
+        if(idx.articles) {
+            for(const p of idx.articles) {
+                const a=await loadMarkdownArticle(p);
+                if(a) arts.push(a);
+                else console.warn(`⚠️ 跳过加载失败的文章: ${p}`);
+            }
+        }
+        arts.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||''));
+        return arts;
+    } catch(e) {
+        console.error('❌ getAllArticles 执行失败', e);
+        return [];
+    }
 }
 
 async function getCards(){
-    const idx=await loadArticleIndex();
-    const cards=[];
-    if(idx.cards) for(const p of idx.cards){ const a=await loadMarkdownArticle(p); if(a)cards.push(a); }
-    cards.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return cards;
+    try {
+        const idx=await loadArticleIndex();
+        const cards=[];
+        if(idx.cards) {
+            for(const p of idx.cards) {
+                const a=await loadMarkdownArticle(p);
+                if(a) cards.push(a);
+                else console.warn(`⚠️ 跳过加载失败的卡片: ${p}`);
+            }
+        }
+        cards.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||''));
+        return cards;
+    } catch(e) {
+        console.error('❌ getCards 执行失败', e);
+        return [];
+    }
 }
 
 async function getFiles(){
-    const idx=await loadArticleIndex();
-    const files=[];
-    if(idx.files) for(const p of idx.files){ const a=await loadMarkdownArticle(p); if(a)files.push(a); }
-    files.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return files;
+    try {
+        const idx=await loadArticleIndex();
+        const files=[];
+        if(idx.files) {
+            for(const p of idx.files) {
+                const a=await loadMarkdownArticle(p);
+                if(a) files.push(a);
+                else console.warn(`⚠️ 跳过加载失败的文件: ${p}`);
+            }
+        }
+        files.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||''));
+        return files;
+    } catch(e) {
+        console.error('❌ getFiles 执行失败', e);
+        return [];
+    }
 }
 
 async function getAllContent(){
     const [articles,cards,files]=await Promise.all([getAllArticles(),getCards(),getFiles()]);
     const all=[...articles,...cards,...files];
-    all.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return all;
+    all.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||''));
+    return all;
 }
 
 /* ====================== B站公开API（多代理自动切换） ====================== */
