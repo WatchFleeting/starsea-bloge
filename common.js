@@ -70,7 +70,6 @@ function applyTranslations() {
 }
 
 function updateLangButtons() {
-    // 高亮所有语言选项（桌面设置菜单/移动端更多菜单）
     document.querySelectorAll('.lang-option').forEach(el => {
         if (el.getAttribute('data-lang') === currentLang) {
             el.style.fontWeight = 'bold';
@@ -115,11 +114,9 @@ function updateThemeButtons() {
         ? (i18nData?.['theme_light'] || '亮色')
         : (i18nData?.['theme_dark'] || '暗色');
 
-    // 桌面设置菜单中的主题按钮
     const btnSettings = document.getElementById('settingsThemeBtn');
     if (btnSettings) btnSettings.textContent = label;
 
-    // 移动端二级菜单中的亮/暗选项高亮
     const mobileLight = document.getElementById('themeMobileLight');
     const mobileDark = document.getElementById('themeMobileDark');
     if (mobileLight && mobileDark) {
@@ -146,6 +143,7 @@ function initNavigation(){
     const mb=document.getElementById('moreBtn');
     if(mb){
         const dd=document.createElement('div'); dd.className='custom-dropdown';
+        dd.setAttribute('id', 'mobileMoreDropdown');
         dd.innerHTML=`
             <a href="background.html" data-i18n="image_library">图片库</a>
             <a href="emoji.html" data-i18n="emoji_pack">表情包</a>
@@ -157,27 +155,72 @@ function initNavigation(){
             <a href="https://github.com/WatchFleeting" target="_blank" data-i18n="github">GitHub</a>
             <hr>
             <div class="submenu-item" style="display:flex; align-items:center;">
-                <a href="#" onclick="toggleMobileSubmenu('themeSubmenuMobile')" data-i18n="sw_theme" style="flex:1;">主题 ▸</a>
+                <a href="#" onclick="event.stopPropagation(); toggleMobileSubmenu('themeSubmenuMobile')" data-i18n="sw_theme" style="flex:1;">主题 ▸</a>
             </div>
             <div id="themeSubmenuMobile" class="submenu-list" style="display:none; padding-left:12px;">
                 <a href="#" id="themeMobileLight" onclick="toggleTheme()" data-i18n="theme_light">亮色</a>
                 <a href="#" id="themeMobileDark" onclick="toggleTheme()" data-i18n="theme_dark">暗色</a>
             </div>
             <div class="submenu-item" style="display:flex; align-items:center;">
-                <a href="#" onclick="toggleMobileSubmenu('langSubmenuMobile')" data-i18n="sw_lang" style="flex:1;">语言 ▸</a>
+                <a href="#" onclick="event.stopPropagation(); toggleMobileSubmenu('langSubmenuMobile')" data-i18n="sw_lang" style="flex:1;">语言 ▸</a>
             </div>
             <div id="langSubmenuMobile" class="submenu-list" style="display:none; padding-left:12px;">
                 ${SUPPORTED_LANGS.map(lang => `<a href="#" data-lang="${lang.code}" class="lang-option" onclick="switchLanguage('${lang.code}')">${lang.name}</a>`).join('')}
             </div>
         `;
-        document.body.appendChild(dd); let timer;
-        mb.addEventListener('mouseenter',()=>{ clearTimeout(timer); const r=mb.getBoundingClientRect(); dd.style.left=Math.min(r.left,innerWidth-dd.offsetWidth-10)+'px'; dd.style.top=r.bottom+8+'px'; dd.classList.add('show'); });
-        mb.addEventListener('mouseleave',()=>{ timer=setTimeout(()=>dd.classList.remove('show'),200); });
-        dd.addEventListener('mouseenter',()=>clearTimeout(timer));
-        dd.addEventListener('mouseleave',()=>dd.classList.remove('show'));
+        document.body.appendChild(dd);
+
+        // 判断是否为小屏（移动端）采用点击交互，桌面端保留悬停
+        const isMobile = () => window.innerWidth <= 700;
+        let currentOpen = false;
+
+        function showMenu() {
+            dd.classList.add('show');
+            currentOpen = true;
+        }
+        function hideMenu() {
+            dd.classList.remove('show');
+            currentOpen = false;
+        }
+        function toggleMenu(e) {
+            e.stopPropagation();
+            if (currentOpen) hideMenu();
+            else showMenu();
+        }
+
+        if (isMobile()) {
+            // 移动端：点击“更多”按钮切换菜单
+            mb.addEventListener('click', toggleMenu);
+            // 点击菜单外部关闭
+            document.addEventListener('click', function(e) {
+                if (!dd.contains(e.target) && e.target !== mb && !mb.contains(e.target)) {
+                    hideMenu();
+                }
+            });
+        } else {
+            // 桌面端：悬停展开
+            let timer;
+            mb.addEventListener('mouseenter',()=>{
+                clearTimeout(timer);
+                const r=mb.getBoundingClientRect();
+                dd.style.left=Math.min(r.left,innerWidth-dd.offsetWidth-10)+'px';
+                dd.style.top=r.bottom+8+'px';
+                showMenu();
+            });
+            mb.addEventListener('mouseleave',()=>{
+                timer=setTimeout(()=>hideMenu(),200);
+            });
+            dd.addEventListener('mouseenter',()=>clearTimeout(timer));
+            dd.addEventListener('mouseleave',()=>hideMenu());
+        }
+
+        // 窗口大小变化时重新设置监听（可选，这里简单处理：刷新页面才会切换）
+        window.addEventListener('resize', () => {
+            // 为了简化，不做动态切换，用户手动刷新即可
+        });
     }
 
-    // 桌面端“设置”菜单（含主题和语言）
+    // 桌面端“设置”菜单（保持不变）
     const sb=document.getElementById('settingsBtn');
     if(sb){
         const dd=document.createElement('div'); dd.className='custom-dropdown';
@@ -188,9 +231,18 @@ function initNavigation(){
             <div data-i18n="sw_lang" style="padding:6px 12px; font-weight:500;">语言</div>
             ${SUPPORTED_LANGS.map(lang => `<a href="#" data-lang="${lang.code}" class="lang-option" onclick="switchLanguage('${lang.code}')">${lang.name}</a>`).join('')}
         `;
-        document.body.appendChild(dd); let timer;
-        sb.addEventListener('mouseenter',()=>{ clearTimeout(timer); const r=sb.getBoundingClientRect(); dd.style.left=Math.min(r.left,innerWidth-dd.offsetWidth-10)+'px'; dd.style.top=r.bottom+8+'px'; dd.classList.add('show'); });
-        sb.addEventListener('mouseleave',()=>{ timer=setTimeout(()=>dd.classList.remove('show'),200); });
+        document.body.appendChild(dd);
+        let timer;
+        sb.addEventListener('mouseenter',()=>{
+            clearTimeout(timer);
+            const r=sb.getBoundingClientRect();
+            dd.style.left=Math.min(r.left,innerWidth-dd.offsetWidth-10)+'px';
+            dd.style.top=r.bottom+8+'px';
+            dd.classList.add('show');
+        });
+        sb.addEventListener('mouseleave',()=>{
+            timer=setTimeout(()=>dd.classList.remove('show'),200);
+        });
         dd.addEventListener('mouseenter',()=>clearTimeout(timer));
         dd.addEventListener('mouseleave',()=>dd.classList.remove('show'));
     }
