@@ -385,23 +385,20 @@
     const declarationContent = document.getElementById('declarationContent');
     const declarationIcon = document.getElementById('declarationIcon');
 
-    // 本地备用路径（未配置 WebOS 时使用）
-    const LOCAL_BASE = 'https://watchfleeting.github.io/starsea-bloge/Vocaloid/';
-
-    // 构建媒体 URL，优先 WebOS 直链
+    // 构建媒体 URL：优先 WebOS 直链，否则回退到项目本地 Vocaloid/ 文件夹
     function buildMediaUrls(songName) {
-        const mp3FileName = songName + '.mp3';
-        const coverFileName = songName + '.png';
-        const webosMp3 = getWebosUrl('songs', mp3FileName);
-        const webosCover = getWebosUrl('songs', coverFileName);
+        const mp3File = songName + '.mp3';
+        const coverFile = songName + '.png';
+        const webosMp3 = getWebosUrl('songs', mp3File);
+        const webosCover = getWebosUrl('songs', coverFile);
         if (webosMp3 && webosCover) {
             return { mp3Url: webosMp3, coverUrl: webosCover };
         }
-        // 回退到本地路径（保持原逻辑）
+        // 回退到本地相对路径
         const encoded = encodeURIComponent(songName);
-        return { 
-            mp3Url: LOCAL_BASE + encoded + '.mp3', 
-            coverUrl: LOCAL_BASE + 'png/' + encoded + '.png' 
+        return {
+            mp3Url: './Vocaloid/' + encoded + '.mp3',
+            coverUrl: './Vocaloid/png/' + encoded + '.png'
         };
     }
 
@@ -646,7 +643,7 @@
             if (displayList.length) { currentIdx = 0; loadTrackByIndex(0, false); }
         } catch(err) {
             try {
-                const jsonResp = await fetch('https://watchfleeting.github.io/starsea-bloge/Vocaloid/Vdata.json');
+                const jsonResp = await fetch('Vocaloid/Vdata.json');
                 if (jsonResp.ok) {
                     const data = await jsonResp.json();
                     masterTrackList = data.map(item => {
@@ -657,7 +654,7 @@
                     updateTrackCountUI(); renderPlaylistWithThumbs();
                     if (displayList.length) { currentIdx = 0; loadTrackByIndex(0, false); }
                 }
-            } catch(e) { console.error("JSON also failed", e); }
+            } catch(e) { console.error("本地数据加载失败", e); }
         }
     }
 
