@@ -139,7 +139,7 @@ function initNavigation(){
         b.addEventListener('mouseleave',()=>t.classList.remove('show'));
     });
 
-    // 移动端“更多”菜单（含二级菜单、播放器）
+    // 移动端“更多”菜单
     const mb=document.getElementById('moreBtn');
     if(mb){
         const dd=document.createElement('div'); dd.className='custom-dropdown';
@@ -172,7 +172,6 @@ function initNavigation(){
         `;
         document.body.appendChild(dd);
 
-        // 绑定移动端播放器按钮事件
         const mobilePlayer = dd.querySelector('#mobilePlayerBtn');
         if (mobilePlayer) {
             mobilePlayer.addEventListener('click', (e) => {
@@ -182,14 +181,11 @@ function initNavigation(){
             });
         }
 
-        // 根据屏幕宽度判断交互方式
         const isMobile = () => window.innerWidth <= 700;
         let currentOpen = false;
 
-        // 显示菜单并定位
         function showMenu() {
             const r = mb.getBoundingClientRect();
-            // 让菜单右对齐于按钮右侧，下方留 8px 间距
             dd.style.left = Math.min(r.right - dd.offsetWidth, innerWidth - dd.offsetWidth - 10) + 'px';
             dd.style.top = r.bottom + 8 + 'px';
             dd.classList.add('show');
@@ -206,17 +202,13 @@ function initNavigation(){
         }
 
         if (isMobile()) {
-            // 移动端：点击“更多”按钮切换菜单
             mb.addEventListener('click', toggleMenu);
-            // 点击菜单外部关闭
             document.addEventListener('click', function(e) {
                 if (!dd.contains(e.target) && e.target !== mb && !mb.contains(e.target)) {
                     hideMenu();
                 }
             });
-            // 窗口大小改变时若离开移动端，不做额外处理（保持点击逻辑，但不影响桌面端因为会刷新）
         } else {
-            // 桌面端：悬停展开
             let timer;
             mb.addEventListener('mouseenter',()=>{
                 clearTimeout(timer);
@@ -230,7 +222,7 @@ function initNavigation(){
         }
     }
 
-    // 桌面端“设置”菜单（保持不变）
+    // 桌面端“设置”菜单
     const sb=document.getElementById('settingsBtn');
     if(sb){
         const dd=document.createElement('div'); dd.className='custom-dropdown';
@@ -261,30 +253,125 @@ function initNavigation(){
     if(bb){ addEventListener('scroll',()=>{ const s=scrollY>200; bb.style.opacity=s?'1':'0'; bb.style.visibility=s?'visible':'hidden'; }); bb.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'})); }
 }
 
-/* 播放器（完整保留） */
+/* ================= 浮动播放器核心逻辑 ================= */
 function initPlayer(){
-    const p=document.getElementById('floatingPlayer'), f=document.getElementById('playerIframe'), PUR='Vocaloidplayer.html';
-    let open=false,min=false,pos={left:null,top:null},drag=false,ox=0,oy=0;
-    function show(tr,us=false){
-        if(!p)return; p.classList.remove('minimizing');
-        if(!us&&tr){ const r=tr.getBoundingClientRect(); let l=r.left+r.width/2-270,t=r.bottom+8; if(l+540>innerWidth-16)l=innerWidth-556; if(l<16)l=16; if(t+360>innerHeight-16)t=r.top-368; p.style.left=l+'px'; p.style.top=t+'px'; pos={left:l,top:t}; }
-        else if(pos.left!=null){ p.style.left=pos.left+'px'; p.style.top=pos.top+'px'; }
-        if(!open&&f.src==='about:blank')f.src=PUR; p.classList.add('show'); open=true; min=false;
+    const p=document.getElementById('floatingPlayer');
+    const f=document.getElementById('playerIframe');
+    const PUR='Vocaloidplayer.html';
+
+    if (!p || !f) return;
+
+    let open=false, min=false, pos={left:null,top:null}, drag=false, ox=0, oy=0;
+
+    function show(tr, us=false){
+        p.classList.remove('minimizing');
+        if (!us && tr) {
+            const r = tr.getBoundingClientRect();
+            let l = r.left + r.width/2 - 280;
+            let t = r.bottom + 8;
+            // 避免超出屏幕
+            if (l + 560 > innerWidth - 16) l = innerWidth - 576;
+            if (l < 16) l = 16;
+            if (t + 380 > innerHeight - 16) t = r.top - 388;
+            if (t < 0) t = 16;
+            p.style.left = l + 'px';
+            p.style.top = t + 'px';
+            pos = {left: l, top: t};
+        } else if (pos.left != null) {
+            p.style.left = pos.left + 'px';
+            p.style.top = pos.top + 'px';
+        } else {
+            // 无位置信息时居中
+            p.style.left = (innerWidth - 560) / 2 + 'px';
+            p.style.top = (innerHeight - 380) / 2 + 'px';
+        }
+
+        if (!open && f.src === 'about:blank') f.src = PUR;
+        p.classList.add('show');
+        open = true;
+        min = false;
     }
-    function close(){ p.classList.remove('show'); open=false; min=false; f.src='about:blank'; }
-    function minimize(){ if(!open)return; min=true; p.classList.add('minimizing'); setTimeout(()=>{ if(min){ p.classList.remove('show','minimizing'); open=false; } },350); }
-    function maximize(){ open(PUR,'_blank'); close(); }
-    document.getElementById('playerToggleBtn')?.addEventListener('click',e=>{ e.preventDefault(); if(min)show(document.getElementById('playerNavItem'),true); else if(!open)show(document.getElementById('playerNavItem')); else if(!p.classList.contains('show'))show(document.getElementById('playerNavItem'),true); });
-    document.getElementById('winMinimizeBtn')?.addEventListener('click',minimize);
-    document.getElementById('winMaximizeBtn')?.addEventListener('click',maximize);
-    document.getElementById('winCloseBtn')?.addEventListener('click',close);
-    document.getElementById('playerTitlebar')?.addEventListener('mousedown',e=>{
-        if(!open||min||e.target.closest('.win-btn'))return; e.preventDefault(); drag=true; p.classList.add('dragging');
-        const rect=p.getBoundingClientRect(); ox=e.clientX-rect.left; oy=e.clientY-rect.top;
-        addEventListener('mousemove',onDrag); addEventListener('mouseup',stopDrag);
+
+    function close(){
+        p.classList.remove('show');
+        open = false;
+        min = false;
+        f.src = 'about:blank';
+    }
+
+    function minimize(){
+        if (!open) return;
+        min = true;
+        p.classList.add('minimizing');
+        setTimeout(() => {
+            if (min) {
+                p.classList.remove('show','minimizing');
+                open = false;
+            }
+        }, 350);
+    }
+
+    function maximize(){
+        if (open) {
+            window.open(PUR, '_blank');
+            close();
+        }
+    }
+
+    // 拖拽
+    const titlebar = document.getElementById('playerTitlebar');
+    if (titlebar) {
+        titlebar.addEventListener('mousedown', (e) => {
+            if (!open || min || e.target.closest('.win-btn')) return;
+            e.preventDefault();
+            drag = true;
+            const rect = p.getBoundingClientRect();
+            ox = e.clientX - rect.left;
+            oy = e.clientY - rect.top;
+            addEventListener('mousemove', onDrag);
+            addEventListener('mouseup', stopDrag);
+        });
+    }
+
+    function onDrag(e){
+        if (!drag) return;
+        let l = e.clientX - ox;
+        let t = e.clientY - oy;
+        l = Math.max(4, Math.min(l, innerWidth - p.offsetWidth - 4));
+        t = Math.max(4, Math.min(t, innerHeight - p.offsetHeight - 4));
+        p.style.left = l + 'px';
+        p.style.top = t + 'px';
+        pos = {left: l, top: t};
+    }
+
+    function stopDrag(){
+        drag = false;
+        removeEventListener('mousemove', onDrag);
+        removeEventListener('mouseup', stopDrag);
+    }
+
+    // 绑定按钮
+    document.getElementById('playerToggleBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (min) show(document.getElementById('playerNavItem'), true);
+        else if (!open) show(document.getElementById('playerNavItem'));
+        else if (!p.classList.contains('show')) show(document.getElementById('playerNavItem'), true);
     });
-    function onDrag(e){ if(!drag)return; let l=e.clientX-ox,t=e.clientY-oy; l=Math.max(4,Math.min(l,innerWidth-p.offsetWidth-4)); t=Math.max(4,Math.min(t,innerHeight-p.offsetHeight-4)); p.style.left=l+'px'; p.style.top=t+'px'; pos={left:l,top:t}; }
-    function stopDrag(){ drag=false; p.classList.remove('dragging'); removeEventListener('mousemove',onDrag); removeEventListener('mouseup',stopDrag); }
+    document.getElementById('winMinimizeBtn')?.addEventListener('click', minimize);
+    document.getElementById('winMaximizeBtn')?.addEventListener('click', maximize);
+    document.getElementById('winCloseBtn')?.addEventListener('click', close);
+
+    // 移动端居中展示，禁用拖拽（简化交互）
+    if (window.innerWidth <= 700) {
+        p.style.left = '50%';
+        p.style.top = '50%';
+        p.style.transform = 'translate(-50%, -50%)';
+        // 拖拽会破坏居中，移除拖拽监听
+        if (titlebar) {
+            titlebar.style.cursor = 'default';
+            titlebar.removeEventListener('mousedown', null);
+        }
+    }
 }
 
 /* 动态 Favicon */
