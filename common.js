@@ -104,7 +104,7 @@ async function switchLanguage(langCode) {
     await loadLanguage(langCode);
 }
 
-/* 移动端二级菜单切换（保留兼容） */
+/* 移动端二级菜单切换 */
 function toggleMobileSubmenu(id) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -186,6 +186,10 @@ function initNavigation() {
             { href: 'https://github.com/WatchFleeting', i18n: 'github', text: 'GitHub', external: true },
             { type: 'hr' },
             { id: 'mobilePlayerBtn', i18n: 'player', text: '🎵 播放器', action: () => document.getElementById('playerToggleBtn')?.click() },
+            { id: 'pomodoroBtn', text: '🍅 番茄钟', action: () => toggleFloatingTool('floatingPomodoro', 'pomodoroIframe', 'pomodoro.html') },
+            { id: 'drinkBtn', text: '💧 喝水提醒', action: () => toggleFloatingTool('floatingDrink', 'drinkIframe', 'drink.html') },
+            { id: 'notesBtn', text: '📝 便签', action: () => toggleFloatingTool('floatingNotes', 'notesIframe', 'notes.html') },
+            { id: 'diceBtn', text: '🎲 骰子', action: () => toggleFloatingTool('floatingDice', 'diceIframe', 'dice.html') },
             { type: 'hr' },
             { type: 'submenu', i18n: 'sw_theme', text: '主题 ▸', submenuId: 'themeSubmenu', items: [
                 { id: 'themeMobileLight', i18n: 'theme_light', text: '亮色', action: toggleTheme },
@@ -305,6 +309,21 @@ function initNavigation() {
             backBtn.style.visibility = window.scrollY > 200 ? 'visible' : 'hidden';
         });
         backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    }
+}
+
+/* 通用浮动工具切换函数 */
+function toggleFloatingTool(containerId, iframeId, src) {
+    const container = document.getElementById(containerId);
+    const iframe = document.getElementById(iframeId);
+    if (!container || !iframe) return;
+    if (container.classList.contains('show')) {
+        container.classList.remove('show');
+    } else {
+        if (iframe.src === 'about:blank' || iframe.src === '') {
+            iframe.src = src;
+        }
+        container.classList.add('show');
     }
 }
 
@@ -594,5 +613,6 @@ async function initSite(){
     initNavigation();
     initPlayer();
     initFavicon();
+    // 四个小组件无需额外的 init 函数，因为点击时动态切换 iframe 并显示
 }
 document.addEventListener('DOMContentLoaded', initSite);
