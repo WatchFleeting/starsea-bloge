@@ -27,7 +27,7 @@
     --touch-target-size: 44px;
 }
 
-/* 暗色主题变量覆盖 */
+/* ========== 暗色主题 ========== */
 [data-theme="dark"] {
     --primary-400: #38bdf8;
     --primary-500: #0ea5e9;
@@ -43,6 +43,53 @@
     --shadow-hover: 0 12px 24px -8px rgba(14,165,233,0.2);
 }
 
+/* 导航栏暗色文字强制高亮 */
+[data-theme="dark"] .top-bar {
+    background: rgba(15, 23, 42, 0.9);
+}
+[data-theme="dark"] .nav-item-wrapper a {
+    color: #e2e8f0;
+}
+[data-theme="dark"] .nav-item-wrapper a:hover {
+    color: #38bdf8;
+    border-bottom-color: #38bdf8;
+}
+[data-theme="dark"] .site-title {
+    color: #38bdf8;
+}
+
+/* 下拉菜单（更多/设置）暗色适配 */
+[data-theme="dark"] .custom-dropdown,
+[data-theme="dark"] .lang-dropdown {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: #0ea5e9;
+}
+[data-theme="dark"] .custom-dropdown a,
+[data-theme="dark"] .lang-dropdown a,
+[data-theme="dark"] .submenu-item a,
+[data-theme="dark"] .submenu-list a {
+    color: #e2e8f0;
+}
+[data-theme="dark"] .custom-dropdown a:hover,
+[data-theme="dark"] .lang-dropdown a:hover,
+[data-theme="dark"] .submenu-item a:hover,
+[data-theme="dark"] .submenu-list a:hover {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+}
+
+/* 导航岛模式暗色 */
+[data-theme="dark"] .top-bar.island-mode {
+    background: rgba(15, 23, 42, 0.8);
+}
+
+/* 返回顶部按钮暗色 */
+[data-theme="dark"] #backToTopBtn {
+    background: var(--bg-card);
+    color: var(--text-title);
+}
+
+/* ========== 基础重置 ========== */
 *,*::before,*::after{ margin:0; padding:0; box-sizing:border-box; }
 body{
     font-family:'Inter',sans-serif; background:var(--bg-page); color:var(--text-title);
@@ -54,9 +101,12 @@ body{
     background-size:cover; background-position:center; z-index:-1;
     opacity:0.08; animation:bgZoomIn 1.2s ease forwards;
 }
+[data-theme="dark"] .bg-layer {
+    opacity: 0.12;
+}
 @keyframes bgZoomIn{ 0%{ transform:scale(1.3); opacity:0; } 100%{ transform:scale(1); opacity:0.08; } }
 
-/* ---------- 导航栏 ---------- */
+/* ========== 导航栏 ========== */
 .top-bar{
     position:fixed; top:0; left:0; width:100%; background:rgba(255,255,255,0.85);
     backdrop-filter:blur(16px); border-bottom:2px solid var(--primary-500);
@@ -78,7 +128,7 @@ body{
 }
 .nav-item-wrapper a:hover{ color:var(--primary-500); border-bottom-color:var(--primary-500); }
 
-/* 悬浮导航岛 */
+/* 导航岛效果（桌面） */
 @media(min-width:701px){
     .top-bar.island-mode{
         top:12px; left:12px; width:calc(100% - 24px); height:56px; padding:0 28px;
@@ -90,28 +140,26 @@ body{
     body.island-active{ margin-top:90px; }
 }
 
-/* 移动端：仅保留首页、图片库、表情包、更多、播放器，隐藏主题和语言切换按钮 */
+/* 移动端隐藏部分元素 */
 @media(max-width:700px){
     .nav-item-wrapper.nav-item-player,.nav-item-wrapper.nav-item-wallpaper,
     .nav-item-wrapper.nav-item-emoji,.nav-item-wrapper.nav-item-bili,
     .nav-item-wrapper.nav-item-github{ display:none; }
-    /* 隐藏主题和语言切换按钮（在“更多”菜单中会出现） */
-    #themeToggle, #langToggle { display: none; }
+    #settingsBtn { display: none; }   /* 移动端隐藏桌面设置按钮，改用更多菜单 */
     .site-title { font-size: 1.2rem !important; }
     .site-title img { height: 2.2rem !important; }
     .nav-links { gap: 4px !important; }
     .nav-item-wrapper a { font-size: 0.8rem !important; padding: 6px 4px !important; }
 }
 
-/* 小屏桌面（701~1000px）隐藏主题/语言按钮以节省空间，用户可通过更多菜单切换 */
+/* 小屏桌面缩减 */
 @media (min-width:701px) and (max-width:1000px) {
-    #themeToggle, #langToggle { display: none; }
     .nav-links { gap: clamp(2px, 1vw, 10px); }
     .site-title { font-size: 1.3rem; }
     .site-title img { height: 2.4rem !important; }
 }
 
-/* ---------- 通用卡片 ---------- */
+/* ========== 通用组件 ========== */
 .card{
     background:var(--bg-card); border:1px solid var(--border-light);
     border-radius:var(--radius-card); box-shadow:var(--shadow-sm); transition:var(--transition);
@@ -142,6 +190,7 @@ body{
 .win-btn{ background:none; border:none; color:var(--primary-400); cursor:pointer; }
 .win-btn.close:hover{ background:#ef4444; color:white; }
 
+/* 提示工具 */
 .btn-tooltip{
     position:fixed; background:rgba(0,0,0,0.85); color:white; font-size:12px;
     padding:5px 10px; border-left:2px solid var(--primary-500); z-index:10001;
@@ -149,20 +198,41 @@ body{
 }
 .btn-tooltip.show{ opacity:1; transform:translateY(0); }
 
-.custom-dropdown{
-    position:fixed; background:rgba(255,255,255,0.95); backdrop-filter:blur(16px);
-    border:1px solid var(--primary-500); border-radius:12px; z-index:10001;
-    display:flex; flex-direction:column; gap:4px; padding:8px 12px;
-    opacity:0; transform:translateY(10px); transition:opacity 0.2s,transform 0.2s; pointer-events:none;
+/* 下拉菜单（更多 / 设置） */
+.custom-dropdown, .lang-dropdown {
+    position:fixed;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(16px);
+    border:1px solid var(--primary-500);
+    border-radius:12px;
+    z-index:10001;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    padding:8px 12px;
+    opacity:0;
+    transform:translateY(10px);
+    transition:opacity 0.2s,transform 0.2s;
+    pointer-events:none;
+    min-width: 140px;
 }
-.custom-dropdown.show{ opacity:1; transform:translateY(0); pointer-events:auto; }
-.custom-dropdown a{
+.custom-dropdown.show, .lang-dropdown.show{
+    opacity:1; transform:translateY(0); pointer-events:auto;
+}
+.custom-dropdown a, .lang-dropdown a,
+.submenu-item a, .submenu-list a {
     text-decoration:none; color:var(--text-title); padding:6px 12px;
-    border-radius:8px; font-weight:500;
+    border-radius:8px; font-weight:500; font-size:0.9rem;
 }
-.custom-dropdown a:hover{ background:var(--bg-page); color:var(--primary-600); }
+.custom-dropdown a:hover, .lang-dropdown a:hover,
+.submenu-item a:hover, .submenu-list a:hover {
+    background:var(--bg-page); color:var(--primary-600);
+}
 
-/* 文章弹窗 */
+/* 二级子菜单默认隐藏，点击后展开 */
+.submenu-list { display: none; }
+
+/* ========== 文章弹窗 ========== */
 .article-detail-overlay{
     position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0);
     z-index:20000; display:flex; align-items:center; justify-content:center;
@@ -181,7 +251,7 @@ body{
     cursor:pointer; background:none; border:none;
 }
 
-/* 加载/错误状态 */
+/* 状态样式 */
 .loading-skeleton{ color:var(--text-muted); background:var(--bg-card); padding:12px; border-left:3px solid var(--primary-500); }
 .error-text{ color:#e05a5a; background:#fff5f5; padding:12px; border-left:3px solid #e05a5a; }
 .tag-badge{
