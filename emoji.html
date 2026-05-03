@@ -21,21 +21,28 @@
         .section-header h2 { font-size: 1.6rem; font-weight: 700; flex: 1; }
         .emoji-grid { 
             display: grid; 
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem; 
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* 卡片最小宽度缩小，适应更多列 */
+            gap: 1rem; 
         }
         .emoji-card {
             background: var(--bg-card); border: 1px solid var(--border-light);
-            border-radius: var(--radius-card); padding: 1rem; text-align: center;
+            border-radius: var(--radius-card); padding: 0.8rem; text-align: center;
             box-shadow: var(--shadow-sm); transition: var(--transition);
         }
         .emoji-card:hover { border-color: var(--primary-400); box-shadow: var(--shadow-hover); transform: translateY(-4px); }
-        .emoji-card img { width: 100%; aspect-ratio: 1; object-fit: contain; }
-        .emoji-name { font-weight: 600; margin: 0.5rem 0; color: var(--text-title); }
+        .emoji-card img { 
+            width: 100%; 
+            aspect-ratio: 1 / 1; 
+            object-fit: contain; 
+            max-height: 120px;        /* 限制最大高度，避免过大 */
+            margin-bottom: 0.4rem;
+        }
+        .emoji-name { font-weight: 600; font-size: 0.85rem; margin: 0.3rem 0; color: var(--text-title); }
         .download-single-btn {
-            margin-top: 0.4rem; padding: 0.5rem 1.2rem;
+            margin-top: 0.3rem; padding: 0.4rem 0.8rem;
             background: var(--bg-card); border: 1px solid var(--border-light);
             border-radius: 40px; font-weight: 600; cursor: pointer;
+            font-size: 0.75rem;
             transition: var(--transition); color: var(--text-title);
         }
         .download-single-btn:hover { background: var(--primary-500); border-color: var(--primary-500); color: white; }
@@ -48,10 +55,11 @@
         .download-all-btn:hover { background: var(--primary-600); transform: translateY(-2px); }
 
         @media (max-width: 600px) {
-            .emoji-grid { grid-template-columns: 1fr; gap: 1rem; }
-            .emoji-card img { max-height: 150px; object-fit: contain; }
-            .emoji-name { font-size: 0.85rem; }
-            .download-single-btn { font-size: 0.75rem; padding: 0.4rem 1rem; }
+            .emoji-grid { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+            .emoji-card { padding: 0.6rem; }
+            .emoji-card img { max-height: 100px; }
+            .emoji-name { font-size: 0.8rem; }
+            .download-single-btn { font-size: 0.7rem; padding: 0.3rem 0.7rem; }
             .section-header { flex-wrap: wrap; }
         }
     </style>
@@ -68,11 +76,16 @@
 </main>
 <script src="common.js"></script>
 <script>
-    const EMOJI_BASE_URL = 'https://xxdz-official.github.io/x/emoji/';
+    // 表情包图片基础路径：优先 WebOS，否则使用本地 ./emoji/
+    function getEmojiUrl(filename) {
+        const webosUrl = getWebosUrl('emoji', filename);  // 可在 webos-config.json 中添加 emoji 分类
+        if (webosUrl) return webosUrl;
+        return './emoji/' + encodeURIComponent(filename);
+    }
 
     /**
      * 将原始分类名转换为友好显示名称
-     * 规则：匹配 "前缀_emoji_编号" 格式 → "前缀の表情包第编号弹"
+     * 规则：匹配 "前缀_emoji_编号" → "前缀の表情包第编号弹"
      * 否则返回原始名称
      */
     function getDisplayCategory(category) {
@@ -80,7 +93,7 @@
         if (match) {
             return `${match[1]}の表情包第${match[2]}弹`;
         }
-        return category; // 不符合规则则保持原样
+        return category;
     }
 
     async function loadEmojis() {
@@ -111,11 +124,11 @@
                         </div>
                         <div class="emoji-grid">
                             ${items.map(emoji => {
-                                const imgUrl = EMOJI_BASE_URL + encodeURIComponent(emoji.file);
+                                const imgUrl = getEmojiUrl(emoji.file);
                                 return `
                                     <div class="emoji-card">
                                         <img src="${imgUrl}" alt="${escapeHtml(emoji.name)}" loading="lazy" 
-                                             onerror="this.src='https://xxdz-official.github.io/x/img/fallback.png'">
+                                             onerror="this.src='img/fallback.png'">
                                         <div class="emoji-name">${escapeHtml(emoji.name)}</div>
                                         <button class="download-single-btn" data-url="${imgUrl}" data-filename="${escapeHtml(emoji.file)}">
                                             <i class="fas fa-download"></i> 下载
