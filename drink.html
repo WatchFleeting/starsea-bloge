@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>喝水提醒</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#111827; color:#eef5ff; font-family: 'Segoe UI', system-ui; display:flex; align-items:center; justify-content:center; height:100vh; }
+        .container { text-align:center; width:100%; padding:20px; }
+        .icon { font-size:3rem; color:#66ccff; margin-bottom:15px; }
+        .status { font-size:0.9rem; color:#bbd4ff; margin:10px 0; }
+        .btn { background:rgba(27,37,55,0.7); border:1px solid #39C5BB; color:#66ccff; padding:8px 16px; border-radius:8px; cursor:pointer; margin:5px; }
+        .btn:hover { background:rgba(57,197,187,0.3); color:white; }
+        input { width:60px; background:#1e2a3c; border:1px solid #39C5BB; color:#fff; border-radius:6px; text-align:center; padding:4px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="icon"><i class="fa fa-glass-whiskey"></i></div>
+    <div class="status" id="status">喝水提醒已停止</div>
+    <div>
+        <button class="btn" id="startBtn">开始提醒</button>
+        <button class="btn" id="stopBtn">停止</button>
+    </div>
+    <div style="margin-top:15px;">
+        <label>提醒间隔 (分钟)</label>
+        <input type="number" id="interval" value="30" min="1" max="120">
+    </div>
+</div>
+<script>
+    let intervalId;
+    const status = document.getElementById('status'),
+          start = document.getElementById('startBtn'),
+          stop = document.getElementById('stopBtn'),
+          intervalInput = document.getElementById('interval');
+    function notify(){ alert('该喝水啦！💧'); }
+    start.onclick = ()=>{ 
+        if(intervalId) return;
+        const min = parseInt(intervalInput.value);
+        intervalId = setInterval(notify, min*60000);
+        status.textContent = `每 ${min} 分钟提醒一次`;
+    }
+    stop.onclick = ()=>{ clearInterval(intervalId); intervalId=null; status.textContent='已停止'; }
+</script>
+</body>
+</html>
