@@ -10,7 +10,20 @@
     <link rel="icon" id="dynamic-favicon" href="img/ico_1.ico">
     <style>
         .main-container { max-width: 1200px; margin: 90px auto 60px; padding: 0 1.5rem; }
-        .emoji-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+        .emoji-section { margin-bottom: 2.5rem; }
+        .section-header {
+            margin-bottom: 1.5rem;
+            border-left: 6px solid var(--primary-500);
+            padding-left: 20px;
+            display: flex; align-items: center; gap: 12px;
+            color: var(--text-title);
+        }
+        .section-header h2 { font-size: 1.6rem; font-weight: 700; flex: 1; }
+        .emoji-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem; 
+        }
         .emoji-card {
             background: var(--bg-card); border: 1px solid var(--border-light);
             border-radius: var(--radius-card); padding: 1rem; text-align: center;
@@ -30,39 +43,78 @@
             display: inline-flex; align-items: center; gap: 8px;
             padding: 10px 24px; background: var(--primary-500); color: white;
             border-radius: 40px; text-decoration: none; font-weight: 600;
-            transition: var(--transition);
+            transition: var(--transition); white-space: nowrap;
         }
         .download-all-btn:hover { background: var(--primary-600); transform: translateY(-2px); }
 
-        /* 移动端优化 */
         @media (max-width: 600px) {
-            .emoji-grid { gap: 1rem; }
+            .emoji-grid { grid-template-columns: 1fr; gap: 1rem; }
             .emoji-card img { max-height: 150px; object-fit: contain; }
             .emoji-name { font-size: 0.85rem; }
             .download-single-btn { font-size: 0.75rem; padding: 0.4rem 1rem; }
+            .section-header { flex-wrap: wrap; }
         }
     </style>
 </head>
 <body>
 <div class="bg-layer"></div>
 <main class="main-container">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-left:6px solid var(--primary-500); padding-left:20px;">
+    <div style="border-left:6px solid var(--primary-500); padding-left:20px; margin-bottom:1.5rem;">
         <h2 style="color:var(--primary-600); font-size:1.8rem;"><i class="fas fa-laugh-wink"></i> 表情包</h2>
-        <a href="https://xxdz-official.github.io/x/emoji/xxdz_emoji_01.zip" class="download-all-btn" download><i class="fas fa-download"></i> 下载全部</a>
     </div>
-    <div id="emojiContainer" class="emoji-grid"><div class="loading-skeleton">加载中...</div></div>
+    <div id="emojiContainer">
+        <div class="loading-skeleton">加载中...</div>
+    </div>
 </main>
 <script src="common.js"></script>
 <script>
     const EMOJI_BASE_URL = 'https://xxdz-official.github.io/x/emoji/';
+
     async function loadEmojis() {
         try {
             const emojis = await loadJSON('data/emojis.json');
             const container = document.getElementById('emojiContainer');
-            container.innerHTML = emojis.map((emoji, index) => {
-                const imgUrl = EMOJI_BASE_URL + encodeURIComponent(emoji.file);
-                return `<div class="emoji-card" style="animation-delay:${index*0.05}s;"><img src="${imgUrl}" alt="${escapeHtml(emoji.name)}" loading="lazy" onerror="this.src='https://xxdz-official.github.io/x/img/fallback.png'"><div class="emoji-name">${escapeHtml(emoji.name)}</div><button class="download-single-btn" data-url="${imgUrl}" data-filename="${escapeHtml(emoji.file)}"><i class="fas fa-download"></i> 下载</button></div>`;
-            }).join('');
+
+            // 按 category 分组
+            const sections = emojis.reduce((acc, cur) => {
+                const cat = cur.category || '其他';
+                if (!acc[cat]) acc[cat] = [];
+                acc[cat].push(cur);
+                return acc;
+            }, {});
+
+            let html = '';
+            for (const [category, items] of Object.entries(sections)) {
+                // 为该分类生成独立的下载全部按钮（链接指向对应 ZIP）
+                const zipUrl = `./emoji/${encodeURIComponent(category)}.zip`;
+                html += `
+                    <div class="emoji-section">
+                        <div class="section-header">
+                            <h2>${escapeHtml(category)}</h2>
+                            <a href="${zipUrl}" class="download-all-btn" download>
+                                <i class="fas fa-download"></i> 下载全部
+                            </a>
+                        </div>
+                        <div class="emoji-grid">
+                            ${items.map(emoji => {
+                                const imgUrl = EMOJI_BASE_URL + encodeURIComponent(emoji.file);
+                                return `
+                                    <div class="emoji-card">
+                                        <img src="${imgUrl}" alt="${escapeHtml(emoji.name)}" loading="lazy" 
+                                             onerror="this.src='https://xxdz-official.github.io/x/img/fallback.png'">
+                                        <div class="emoji-name">${escapeHtml(emoji.name)}</div>
+                                        <button class="download-single-btn" data-url="${imgUrl}" data-filename="${escapeHtml(emoji.file)}">
+                                            <i class="fas fa-download"></i> 下载
+                                        </button>
+                                    </div>`;
+                            }).join('')}
+                        </div>
+                    </div>`;
+            }
+
+            container.innerHTML = html || '<div class="error-text">暂无表情包</div>';
+
+            // 绑定单张下载事件
             container.querySelectorAll('.download-single-btn').forEach(btn => {
                 btn.addEventListener('click', async function(e) {
                     e.stopPropagation();
