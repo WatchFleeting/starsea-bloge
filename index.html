@@ -215,8 +215,10 @@
             const profile = await fetchBilibiliFullProfile(HONGZHU_UID);
             if (profile.avatar) {
                 const avatarImg = document.getElementById('profileAvatar');
-                avatarImg.src = profile.avatar;
-                avatarImg.onerror = function() { this.src = 'img/logo.png'; };
+                avatarImg.src = profile.avatar;                // 使用B站头像
+                avatarImg.onerror = function() {
+                    this.src = 'img/logo.png';                 // 降级到本地logo
+                };
             }
             if (profile.name) document.getElementById('profileName').textContent = profile.name;
             if (profile.sign) {
@@ -258,12 +260,10 @@
             console.warn('个人信息加载失败', e);
         }
 
-        // 渲染函数
+        // 渲染函数（同之前最终版）
         function renderArticle(article) {
             const meta = article.meta || {};
-            const tagsHtml = meta.tags && meta.tags.length
-                ? meta.tags.map(tag => `<span class="tag-badge">#${escapeHtml(tag)}</span>`).join('')
-                : '';
+            const tagsHtml = meta.tags && meta.tags.length ? meta.tags.map(tag => `<span class="tag-badge">#${escapeHtml(tag)}</span>`).join('') : '';
             const authorHtml = meta.author ? `<span class="article-meta">✍️ ${escapeHtml(meta.author)}</span>` : '';
             const readTimeHtml = meta.readTime ? `<span class="article-meta">· ${escapeHtml(meta.readTime)}</span>` : '';
             return `<article class="article-card" data-title="${escapeHtml(meta.title||'')}" data-date="${escapeHtml(meta.date||'')}" data-content="${encodeURIComponent(article.content)}" data-meta='${encodeURIComponent(JSON.stringify(meta))}'>
