@@ -385,18 +385,19 @@
     const declarationContent = document.getElementById('declarationContent');
     const declarationIcon = document.getElementById('declarationIcon');
 
-    // 本地备用路径
+    // 本地备用路径（未配置 WebOS 时使用）
     const LOCAL_BASE = 'https://watchfleeting.github.io/starsea-bloge/Vocaloid/';
 
-    // 构建媒体URL，优先使用 WebOS 映射
+    // 构建媒体 URL，优先 WebOS 直链
     function buildMediaUrls(songName) {
-        const songMapping = getWebosUrl('songs', songName);
-        if (songMapping) {
-            return {
-                mp3Url: songMapping.mp3,
-                coverUrl: songMapping.cover
-            };
+        const mp3FileName = songName + '.mp3';
+        const coverFileName = songName + '.png';
+        const webosMp3 = getWebosUrl('songs', mp3FileName);
+        const webosCover = getWebosUrl('songs', coverFileName);
+        if (webosMp3 && webosCover) {
+            return { mp3Url: webosMp3, coverUrl: webosCover };
         }
+        // 回退到本地路径（保持原逻辑）
         const encoded = encodeURIComponent(songName);
         return { 
             mp3Url: LOCAL_BASE + encoded + '.mp3', 
@@ -664,7 +665,6 @@
         bindEvents();
         fetchPlaylist();
         setPlayMode('order');
-        // 自定义光标
         (function() {
             const layer = document.getElementById('cursorLayer');
             if (!layer) return;
