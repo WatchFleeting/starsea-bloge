@@ -177,11 +177,11 @@ body{
 .btn-primary{ background:var(--primary-500); color:white; }
 .btn-primary:hover{ background:var(--primary-600); }
 
-/* ========== 浮动播放器（尺寸优化，无留白） ========== */
+/* ========== 浮动播放器（高度缩减至 400px，减少留白） ========== */
 .floating-player {
     position: fixed;
     width: 580px;
-    height: 420px;
+    height: 400px;                     /* 原来 420px → 400px，更紧凑 */
     background: #111827;
     border: 1px solid var(--primary-500);
     box-shadow: 0 12px 32px rgba(0,0,0,0.5);
