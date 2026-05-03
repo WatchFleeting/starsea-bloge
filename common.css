@@ -177,11 +177,11 @@ body{
 .btn-primary{ background:var(--primary-500); color:white; }
 .btn-primary:hover{ background:var(--primary-600); }
 
-/* ========== 浮动播放器（设备自适应） ========== */
+/* ========== 浮动播放器（尺寸优化，无留白） ========== */
 .floating-player {
     position: fixed;
-    width: 600px;                   /* 桌面默认 */
-    height: 480px;
+    width: 580px;
+    height: 420px;
     background: #111827;
     border: 1px solid var(--primary-500);
     box-shadow: 0 12px 32px rgba(0,0,0,0.5);
@@ -223,7 +223,7 @@ body{
     }
 }
 
-/* 标题栏保持可拖拽提示 */
+/* 播放器标题栏 */
 .player-titlebar {
     background: #1f2937;
     height: 38px;
@@ -255,7 +255,7 @@ body{
     color: white;
 }
 
-/* ========== 提示工具等（省略，保持原样） ========== */
+/* ========== 提示工具 ========== */
 .btn-tooltip{
     position:fixed; background:rgba(0,0,0,0.85); color:white; font-size:12px;
     padding:5px 10px; border-left:2px solid var(--primary-500); z-index:10001;
@@ -263,7 +263,7 @@ body{
 }
 .btn-tooltip.show{ opacity:1; transform:translateY(0); }
 
-/* 下拉菜单（更多 / 设置） */
+/* ========== 下拉菜单（更多 / 设置） ========== */
 .custom-dropdown, .lang-dropdown {
     position:fixed;
     background: rgba(255,255,255,0.95);
@@ -293,9 +293,11 @@ body{
 .submenu-item a:hover, .submenu-list a:hover {
     background:var(--bg-page); color:var(--primary-600);
 }
+
+/* 二级子菜单默认隐藏 */
 .submenu-list { display: none; }
 
-/* 文章弹窗等保持不变 */
+/* ========== 文章弹窗 ========== */
 .article-detail-overlay{
     position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0);
     z-index:20000; display:flex; align-items:center; justify-content:center;
@@ -314,13 +316,14 @@ body{
     cursor:pointer; background:none; border:none;
 }
 
+/* ========== 状态样式 ========== */
 .loading-skeleton{ color:var(--text-muted); background:var(--bg-card); padding:12px; border-left:3px solid var(--primary-500); }
 .error-text{ color:#e05a5a; background:#fff5f5; padding:12px; border-left:3px solid #e05a5a; }
 .tag-badge{
     display:inline-block; background:var(--primary-500); color:white; padding:2px 8px; border-radius:12px; font-size:0.7rem; margin-right:4px;
 }
 
-/* 移动端全局优化 */
+/* ========== 移动端全局优化 ========== */
 @media (max-width: 700px) {
     .main-container {
         margin-top: 80px !important;
@@ -340,7 +343,7 @@ body{
     }
 }
 
-/* 罗小黑光标 */
+/* ========== 全局罗小黑光标 ========== */
 * {
     cursor: url('img/zhengchang_luoxiaohei.gif') 16 16, auto;
 }
