@@ -116,20 +116,21 @@
         .track-play-icon { opacity: 0; font-size: 0.6rem; color: #06b6d4; transition: opacity 0.15s; }
         .track-item.active-track .track-play-icon { opacity: 1; }
 
+        /* 主面板：移除多余的垂直居中，内容自然排列并填满高度 */
         .main-panel {
             flex: 1; display: flex; flex-direction: column;
             background: rgba(10, 15, 25, 0.3); backdrop-filter: blur(10px);
-            padding: 10px 14px; min-width: 0; overflow: hidden;
+            padding: 8px 12px; min-width: 0; overflow: hidden;
             border-radius: 0 16px 16px 0;
-            justify-content: center;
+            /* 不再使用 justify-content: center，确保内容从顶部开始并填满 */
         }
         .now-playing-card {
-            display: flex; gap: 10px; margin-bottom: 8px; align-items: center;
+            display: flex; gap: 8px; margin-bottom: 6px; align-items: center;
             background: rgba(22, 30, 42, 0.55);
-            padding: 8px 12px; border-radius: 10px;
+            padding: 6px 10px; border-radius: 10px;
         }
         .cover-box {
-            width: 44px; height: 44px;
+            width: 40px; height: 40px;
             background: #0c111c;
             border: 2px solid #66ccff;
             border-radius: 50%;
@@ -145,7 +146,7 @@
 
         .track-meta { flex: 1; min-width: 0; overflow: hidden; }
         .track-meta .song-title {
-            font-size: 0.8rem; font-weight: 600; color: #e0f0ff;
+            font-size: 0.75rem; font-weight: 600; color: #e0f0ff;
             margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .time-info { font-size: 0.6rem; color: #bbd4ff; display: flex; gap: 8px; margin-bottom: 4px; }
@@ -160,7 +161,7 @@
             transition: width 0.1s;
         }
 
-        .controls { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+        .controls { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
         .controls-row { display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
         .control-btn {
             background: rgba(27, 37, 55, 0.65);
@@ -232,7 +233,7 @@
         #downloadBtn:hover { background: #06b6d4; transform: scale(1.03); }
 
         .declaration-wrap {
-            margin-top: 8px; padding-top: 6px;
+            margin-top: 6px; padding-top: 4px;
             border-top: 1px solid rgba(6,182,212,0.3);
             font-size: 0.55rem; color: #bbd4ff;
         }
@@ -244,7 +245,7 @@
         .declaration-content { max-height: 0; overflow: hidden; transition: max-height 0.35s; }
         .declaration-content.open { max-height: 200px; }
         .author-row {
-            margin-top: 6px; padding-top: 4px;
+            margin-top: 4px; padding-top: 3px;
             border-top: 1px solid rgba(6,182,212,0.2);
             display: flex; align-items: center; gap: 4px;
         }
@@ -348,6 +349,7 @@
 </div>
 
 <script>
+    // 播放器逻辑（与之前最终版完全一致）
     let masterTrackList = [], displayList = [], currentIdx = 0, playMode = 'order';
     let audioElem = null, isPlaying = false, isUserInteracted = false;
     let audioCtx = null, mediaSourceNode = null, analyserNode = null, animFrame = null, bgCanvas = null, bgCtx = null;
@@ -377,7 +379,7 @@
     const declarationContent = document.getElementById('declarationContent');
     const declarationIcon = document.getElementById('declarationIcon');
 
-    // 构建媒体 URL：音频与封面均优先 WebOS，否则回退本地
+    // 构建媒体 URL：优先 WebOS，否则回退本地
     function buildMediaUrls(songName) {
         const mp3File = songName + '.mp3';
         const coverFile = songName + '.png';
