@@ -139,7 +139,7 @@ function initNavigation(){
         b.addEventListener('mouseleave',()=>t.classList.remove('show'));
     });
 
-    // 移动端“更多”菜单（含二级菜单）
+    // 移动端“更多”菜单（含二级菜单、播放器）
     const mb=document.getElementById('moreBtn');
     if(mb){
         const dd=document.createElement('div'); dd.className='custom-dropdown';
@@ -153,6 +153,8 @@ function initNavigation(){
             <a href="proxy-status.html" data-i18n="proxy_monitor">代理监控</a>
             <a href="https://afdian.com/a/lyxh-took" target="_blank" data-i18n="afdian">爱发电</a>
             <a href="https://github.com/WatchFleeting" target="_blank" data-i18n="github">GitHub</a>
+            <hr>
+            <a href="#" id="mobilePlayerBtn" data-i18n="player">🎵 播放器</a>
             <hr>
             <div class="submenu-item" style="display:flex; align-items:center;">
                 <a href="#" onclick="event.stopPropagation(); toggleMobileSubmenu('themeSubmenuMobile')" data-i18n="sw_theme" style="flex:1;">主题 ▸</a>
@@ -170,7 +172,18 @@ function initNavigation(){
         `;
         document.body.appendChild(dd);
 
-        // 判断是否为小屏（移动端）采用点击交互，桌面端保留悬停
+        // 绑定移动端播放器按钮事件
+        const mobilePlayer = dd.querySelector('#mobilePlayerBtn');
+        if (mobilePlayer) {
+            mobilePlayer.addEventListener('click', (e) => {
+                e.preventDefault();
+                // 模拟点击桌面导航中的播放器按钮
+                const playerToggle = document.getElementById('playerToggleBtn');
+                if (playerToggle) playerToggle.click();
+            });
+        }
+
+        // 移动端点击交互
         const isMobile = () => window.innerWidth <= 700;
         let currentOpen = false;
 
@@ -189,16 +202,13 @@ function initNavigation(){
         }
 
         if (isMobile()) {
-            // 移动端：点击“更多”按钮切换菜单
             mb.addEventListener('click', toggleMenu);
-            // 点击菜单外部关闭
             document.addEventListener('click', function(e) {
                 if (!dd.contains(e.target) && e.target !== mb && !mb.contains(e.target)) {
                     hideMenu();
                 }
             });
         } else {
-            // 桌面端：悬停展开
             let timer;
             mb.addEventListener('mouseenter',()=>{
                 clearTimeout(timer);
@@ -213,11 +223,6 @@ function initNavigation(){
             dd.addEventListener('mouseenter',()=>clearTimeout(timer));
             dd.addEventListener('mouseleave',()=>hideMenu());
         }
-
-        // 窗口大小变化时重新设置监听（可选，这里简单处理：刷新页面才会切换）
-        window.addEventListener('resize', () => {
-            // 为了简化，不做动态切换，用户手动刷新即可
-        });
     }
 
     // 桌面端“设置”菜单（保持不变）
