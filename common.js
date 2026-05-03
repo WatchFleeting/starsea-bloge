@@ -31,22 +31,28 @@ async function loadPlayer(sel='body'){
 /* 通用 JSON 加载 */
 async function loadJSON(url){ const r=await fetch(url); if(!r.ok)throw new Error(`无法加载 ${url}`); return await r.json(); }
 
-/* ================= WebOS 直链映射 ================= */
-let webosMapping = null;
+/* ================= WebOS 直链配置 ================= */
+let webosConfig = null;
 
-async function loadWebosMapping() {
+async function loadWebosConfig() {
     try {
-        webosMapping = await loadJSON('data/webos-mapping.json');
+        webosConfig = await loadJSON('data/webos-config.json');
     } catch(e) {
-        console.warn('WebOS 映射加载失败', e);
-        webosMapping = null;
+        console.warn('WebOS 配置加载失败', e);
     }
 }
 
-// 获取指定类别下的文件直链，未配置时返回 null
+/**
+ * 根据类别和文件名生成 WebOS 直链
+ * @param {string} category - 资源类别（'wallpapers' 或 'songs'）
+ * @param {string} fileName - 文件名（含扩展名）
+ * @returns {string|null}
+ */
 function getWebosUrl(category, fileName) {
-    if (!webosMapping || !webosMapping[category]) return null;
-    return webosMapping[category][fileName] || null;
+    if (!webosConfig || !webosConfig[category]) return null;
+    const cfg = webosConfig[category];
+    if (!cfg.base || !cfg.shareId) return null;
+    return `${cfg.base}/${cfg.shareId}/${encodeURIComponent(fileName)}`;
 }
 
 /* ================= 主题 & 多语言 ================= */
@@ -157,7 +163,7 @@ function initNavigation(){
         b.addEventListener('mouseleave',()=>t.classList.remove('show'));
     });
 
-    // 移动端“更多”菜单
+    // 移动端“更多”菜单（含二级菜单、播放器入口）
     const mb=document.getElementById('moreBtn');
     if(mb){
         const dd=document.createElement('div'); dd.className='custom-dropdown';
@@ -240,7 +246,7 @@ function initNavigation(){
         }
     }
 
-    // 桌面端“设置”菜单
+    // 桌面端“设置”菜单（含主题和语言）
     const sb=document.getElementById('settingsBtn');
     if(sb){
         const dd=document.createElement('div'); dd.className='custom-dropdown';
@@ -271,7 +277,7 @@ function initNavigation(){
     if(bb){ addEventListener('scroll',()=>{ const s=scrollY>200; bb.style.opacity=s?'1':'0'; bb.style.visibility=s?'visible':'hidden'; }); bb.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'})); }
 }
 
-/* ================= 浮动播放器（自适应 + 拖拽） ================= */
+/* ================= 浮动播放器核心逻辑 ================= */
 function initPlayer(){
     const p=document.getElementById('floatingPlayer');
     const f=document.getElementById('playerIframe');
@@ -306,6 +312,7 @@ function initPlayer(){
                 p.style.transform = '';
             }
         } else {
+            // 移动端由 CSS 媒体查询控制居中，这里移除内联定位
             p.style.left = '';
             p.style.top = '';
             p.style.transform = '';
@@ -343,6 +350,7 @@ function initPlayer(){
         }
     }
 
+    // 拖拽（仅桌面端）
     const titlebar = document.getElementById('playerTitlebar');
     if (titlebar && window.innerWidth > 700) {
         titlebar.addEventListener('mousedown', (e) => {
@@ -375,6 +383,7 @@ function initPlayer(){
         removeEventListener('mouseup', stopDrag);
     }
 
+    // 绑定按钮
     document.getElementById('playerToggleBtn')?.addEventListener('click', (e) => {
         e.preventDefault();
         if (min) show(document.getElementById('playerNavItem'), true);
@@ -386,7 +395,7 @@ function initPlayer(){
     document.getElementById('winCloseBtn')?.addEventListener('click', close);
 }
 
-/* 动态 Favicon（4个图标） */
+/* 动态 Favicon（4个图标循环） */
 function initFavicon(){
     const icons=['img/ico_1.ico','img/ico_2.ico','img/ico_3.ico','img/ico_4.ico'];
     let i=0;
@@ -425,18 +434,21 @@ async function getAllArticles(){
     if(idx.articles) for(const p of idx.articles){ const a=await loadMarkdownArticle(p); if(a)arts.push(a); }
     arts.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return arts;
 }
+
 async function getCards(){
     const idx=await loadArticleIndex();
     const cards=[];
     if(idx.cards) for(const p of idx.cards){ const a=await loadMarkdownArticle(p); if(a)cards.push(a); }
     cards.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return cards;
 }
+
 async function getFiles(){
     const idx=await loadArticleIndex();
     const files=[];
     if(idx.files) for(const p of idx.files){ const a=await loadMarkdownArticle(p); if(a)files.push(a); }
     files.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return files;
 }
+
 async function getAllContent(){
     const [articles,cards,files]=await Promise.all([getAllArticles(),getCards(),getFiles()]);
     const all=[...articles,...cards,...files];
@@ -499,7 +511,7 @@ async function fetchBilibiliFullProfile(uid){
     return { uid, ...info, ...rel, ...up, latestVideo: video };
 }
 
-/* 全局弹窗 */
+/* 全局弹窗：显示文章详情 */
 function showArticleDetail(title, date, markdownContent, meta) {
     const exist = document.querySelector('.article-detail-overlay');
     if (exist) exist.remove();
@@ -547,7 +559,7 @@ function showArticleDetail(title, date, markdownContent, meta) {
 
 /* 全局初始化 */
 async function initSite(){
-    await loadWebosMapping();   // 最先加载映射，确保后续可用
+    await loadWebosConfig();   // 优先加载 WebOS 配置
     await loadLanguage(currentLang);
     initTheme();
     await Promise.all([loadHeader(), loadFooter(), loadPlayer()]);
