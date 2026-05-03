@@ -1,4 +1,4 @@
-/* =============/* ============================================
+/* ============================================
    公共脚本 —— 导航/播放器/文章/B站API/数据加载
    ============================================ */
 function escapeHtml(unsafe) {
@@ -139,7 +139,7 @@ function initNavigation(){
         b.addEventListener('mouseleave',()=>t.classList.remove('show'));
     });
 
-    // 移动端“更多”菜单
+    // 移动端“更多”菜单（含二级菜单、播放器入口）
     const mb=document.getElementById('moreBtn');
     if(mb){
         const dd=document.createElement('div'); dd.className='custom-dropdown';
@@ -265,23 +265,31 @@ function initPlayer(){
 
     function show(tr, us=false){
         p.classList.remove('minimizing');
-        if (!us && tr) {
+        if (window.innerWidth <= 700) {
+            // 移动端：居中浮动，忽略传入的定位
+            p.style.left = '50%';
+            p.style.top = '50%';
+            p.style.transform = 'translate(-50%, -50%)';
+        } else if (!us && tr) {
             const r = tr.getBoundingClientRect();
-            let l = r.left + r.width/2 - 280;
+            let l = r.left + r.width/2 - 300;
             let t = r.bottom + 8;
-            if (l + 560 > innerWidth - 16) l = innerWidth - 576;
+            if (l + 600 > innerWidth - 16) l = innerWidth - 616;
             if (l < 16) l = 16;
-            if (t + 380 > innerHeight - 16) t = r.top - 388;
+            if (t + 480 > innerHeight - 16) t = r.top - 488;
             if (t < 0) t = 16;
             p.style.left = l + 'px';
             p.style.top = t + 'px';
+            p.style.transform = '';  // 清除移动端残留的transform
             pos = {left: l, top: t};
         } else if (pos.left != null) {
             p.style.left = pos.left + 'px';
             p.style.top = pos.top + 'px';
+            p.style.transform = '';
         } else {
-            p.style.left = (innerWidth - 560) / 2 + 'px';
-            p.style.top = (innerHeight - 380) / 2 + 'px';
+            p.style.left = (innerWidth - 600) / 2 + 'px';
+            p.style.top = (innerHeight - 480) / 2 + 'px';
+            p.style.transform = '';
         }
 
         if (!open && f.src === 'about:blank') f.src = PUR;
@@ -316,8 +324,9 @@ function initPlayer(){
         }
     }
 
+    // 拖拽（仅桌面端）
     const titlebar = document.getElementById('playerTitlebar');
-    if (titlebar) {
+    if (titlebar && window.innerWidth > 700) {
         titlebar.addEventListener('mousedown', (e) => {
             if (!open || min || e.target.closest('.win-btn')) return;
             e.preventDefault();
@@ -338,6 +347,7 @@ function initPlayer(){
         t = Math.max(4, Math.min(t, innerHeight - p.offsetHeight - 4));
         p.style.left = l + 'px';
         p.style.top = t + 'px';
+        p.style.transform = '';
         pos = {left: l, top: t};
     }
 
@@ -347,6 +357,7 @@ function initPlayer(){
         removeEventListener('mouseup', stopDrag);
     }
 
+    // 绑定按钮
     document.getElementById('playerToggleBtn')?.addEventListener('click', (e) => {
         e.preventDefault();
         if (min) show(document.getElementById('playerNavItem'), true);
@@ -356,40 +367,16 @@ function initPlayer(){
     document.getElementById('winMinimizeBtn')?.addEventListener('click', minimize);
     document.getElementById('winMaximizeBtn')?.addEventListener('click', maximize);
     document.getElementById('winCloseBtn')?.addEventListener('click', close);
-
-    if (window.innerWidth <= 700) {
-        p.style.left = '50%';
-        p.style.top = '50%';
-        p.style.transform = 'translate(-50%, -50%)';
-        if (titlebar) {
-            titlebar.style.cursor = 'default';
-            titlebar.removeEventListener('mousedown', null);
-        }
-    }
 }
 
 /* 动态 Favicon */
 function initFavicon(){ const icons=['img/ico_1.ico','img/ico_2.ico','img/ico_3.ico']; let i=0; const l=document.getElementById('dynamic-favicon'); if(l)setInterval(()=>{ l.href=icons[i=(i+1)%3]; },1000); }
 
-/* ========== 文章系统（增强错误提示） ========== */
-async function loadArticleIndex() {
-    try {
-        const data = await loadJSON('data-index.json');
-        console.log('✅ data-index.json 加载成功');
-        return data;
-    } catch (e) {
-        console.error('❌ data-index.json 加载失败，请检查文件是否存在', e);
-        throw e;
-    }
-}
+/* 文章系统 */
+async function loadArticleIndex(){ return await loadJSON('data-index.json'); }
 async function loadMarkdownArticle(path){
     try{
-        const r=await fetch(path); 
-        if(!r.ok) {
-            console.warn(`⚠️ 文件可能不存在: ${path}，状态码: ${r.status}`);
-            return null;
-        }
-        const t=await r.text(); const lines=t.split('\n');
+        const r=await fetch(path); if(!r.ok)return null; const t=await r.text(); const lines=t.split('\n');
         if(lines[0].trim()==='---'){
             const end=lines.indexOf('---',1); if(end>0){
                 const meta={}; const y=lines.slice(1,end);
@@ -407,74 +394,34 @@ async function loadMarkdownArticle(path){
             }
         }
         return {meta:{title:'无标题'},content:t};
-    }catch(e){ 
-        console.warn('文章加载失败',path,e); 
-        return null; 
-    }
+    }catch(e){ console.warn('文章加载失败',path,e); return null; }
 }
 
 async function getAllArticles(){
-    try {
-        const idx=await loadArticleIndex();
-        const arts=[];
-        if(idx.articles) {
-            for(const p of idx.articles) {
-                const a=await loadMarkdownArticle(p);
-                if(a) arts.push(a);
-                else console.warn(`⚠️ 跳过加载失败的文章: ${p}`);
-            }
-        }
-        arts.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||''));
-        return arts;
-    } catch(e) {
-        console.error('❌ getAllArticles 执行失败', e);
-        return [];
-    }
+    const idx=await loadArticleIndex();
+    const arts=[];
+    if(idx.articles) for(const p of idx.articles){ const a=await loadMarkdownArticle(p); if(a)arts.push(a); }
+    arts.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return arts;
 }
 
 async function getCards(){
-    try {
-        const idx=await loadArticleIndex();
-        const cards=[];
-        if(idx.cards) {
-            for(const p of idx.cards) {
-                const a=await loadMarkdownArticle(p);
-                if(a) cards.push(a);
-                else console.warn(`⚠️ 跳过加载失败的卡片: ${p}`);
-            }
-        }
-        cards.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||''));
-        return cards;
-    } catch(e) {
-        console.error('❌ getCards 执行失败', e);
-        return [];
-    }
+    const idx=await loadArticleIndex();
+    const cards=[];
+    if(idx.cards) for(const p of idx.cards){ const a=await loadMarkdownArticle(p); if(a)cards.push(a); }
+    cards.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return cards;
 }
 
 async function getFiles(){
-    try {
-        const idx=await loadArticleIndex();
-        const files=[];
-        if(idx.files) {
-            for(const p of idx.files) {
-                const a=await loadMarkdownArticle(p);
-                if(a) files.push(a);
-                else console.warn(`⚠️ 跳过加载失败的文件: ${p}`);
-            }
-        }
-        files.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||''));
-        return files;
-    } catch(e) {
-        console.error('❌ getFiles 执行失败', e);
-        return [];
-    }
+    const idx=await loadArticleIndex();
+    const files=[];
+    if(idx.files) for(const p of idx.files){ const a=await loadMarkdownArticle(p); if(a)files.push(a); }
+    files.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return files;
 }
 
 async function getAllContent(){
     const [articles,cards,files]=await Promise.all([getAllArticles(),getCards(),getFiles()]);
     const all=[...articles,...cards,...files];
-    all.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||''));
-    return all;
+    all.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return all;
 }
 
 /* ====================== B站公开API（多代理自动切换） ====================== */
