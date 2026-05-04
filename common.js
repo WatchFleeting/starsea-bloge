@@ -154,7 +154,7 @@ function createMorePanel() {
         <a href="background.html" data-i18n="image_library">图片库</a>
         <a href="emoji.html" data-i18n="emoji_pack">表情包</a>
         <a href="FriendURL.html" data-i18n="friends">友链</a>
-        <a href="proxy-status.html" data-i18n="proxy_monitor">代理监控</a>
+        <a href="proxy-status.html" data-i18n="proxy_monitor">系统状态</a>
         <a href="tags.html" data-i18n="tags">标签</a>
         <a href="log.html" data-i18n="log">日志</a>
         <!-- 播放器入口：移动端必备 -->
