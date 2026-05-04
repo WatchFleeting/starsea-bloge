@@ -2,37 +2,36 @@
    公共脚本 —— 导航/播放器/文章/B站API/数据加载
    ============================================ */
 function escapeHtml(unsafe) {
-    return unsafe.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return unsafe.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 /* 页首尾 & 播放器动态加载 */
 async function loadHeader(sel='body'){
     try{
-        const r = await fetch('header.html'); if(!r.ok) throw new Error('header fail');
-        const h = await r.text(); document.querySelector(sel).insertAdjacentHTML('afterbegin', h); return true;
-    } catch(e){ console.warn('header load fail', e); return false; }
+        const r=await fetch('header.html'); if(!r.ok)throw new Error('header fail');
+        const h=await r.text(); document.querySelector(sel).insertAdjacentHTML('afterbegin',h); return true;
+    }catch(e){ console.warn('header load fail',e); return false; }
 }
 async function loadFooter(sel='body'){
     try{
-        const r = await fetch('footer.html'); if(!r.ok) throw new Error('footer fail');
-        const h = await r.text(); document.querySelector(sel).insertAdjacentHTML('beforeend', h); return true;
-    } catch(e){ console.warn('footer load fail', e); return false; }
+        const r=await fetch('footer.html'); if(!r.ok)throw new Error('footer fail');
+        const h=await r.text(); document.querySelector(sel).insertAdjacentHTML('beforeend',h); return true;
+    }catch(e){ console.warn('footer load fail',e); return false; }
 }
 async function loadPlayer(sel='body'){
     try{
-        const r = await fetch('player.html'); if(!r.ok) throw new Error('player fail');
-        const h = await r.text(); document.querySelector(sel).insertAdjacentHTML('beforeend', h); return true;
-    } catch(e){ console.warn('player load fail', e); return false; }
+        const r=await fetch('player.html'); if(!r.ok)throw new Error('player fail');
+        const h=await r.text(); document.querySelector(sel).insertAdjacentHTML('beforeend',h); return true;
+    }catch(e){ console.warn('player load fail',e); return false; }
 }
 
 /* 通用 JSON 加载 */
-async function loadJSON(url){ const r = await fetch(url); if(!r.ok) throw new Error(`无法加载 ${url}`); return await r.json(); }
+async function loadJSON(url){ const r=await fetch(url); if(!r.ok)throw new Error(`无法加载 ${url}`); return await r.json(); }
 
 /* ================= WebOS 直链配置 ================= */
 let webosConfig = null;
 async function loadWebosConfig() {
-    try { webosConfig = await loadJSON('data/webos-config.json'); }
-    catch(e) { console.warn('WebOS 配置加载失败', e); }
+    try { webosConfig = await loadJSON('data/webos-config.json'); } catch(e) { console.warn('WebOS 配置加载失败', e); }
 }
 function getWebosUrl(category, fileName) {
     if (!webosConfig || !webosConfig[category]) return null;
@@ -99,7 +98,7 @@ function toggleTheme() {
 }
 function updateThemeButtons() {
     const cur = document.documentElement.getAttribute('data-theme');
-    const label = cur === 'dark' ? (i18nData?.['theme_light'] || '亮色') : (i18nData?.['theme_dark'] || '暗色');
+    const label = cur === 'dark' ? (i18nData?.['theme_light']||'亮色') : (i18nData?.['theme_dark']||'暗色');
     const ml = document.getElementById('themeMobileLight'), md = document.getElementById('themeMobileDark');
     if (ml && md) { ml.style.fontWeight = cur === 'light' ? 'bold' : 'normal'; md.style.fontWeight = cur === 'dark' ? 'bold' : 'normal'; }
     const themeBtn = document.getElementById('panelThemeBtn');
@@ -142,7 +141,7 @@ function updateSettingButtons() {
     }
 }
 
-/* ================= 导航交互（重构版） ================= */
+/* ================= 导航交互（防闪退版） ================= */
 let morePanel = null;
 
 function createMorePanel() {
@@ -154,10 +153,9 @@ function createMorePanel() {
         <a href="background.html" data-i18n="image_library">图片库</a>
         <a href="emoji.html" data-i18n="emoji_pack">表情包</a>
         <a href="FriendURL.html" data-i18n="friends">友链</a>
-        <a href="proxy-status.html" data-i18n="proxy_monitor">系统状态</a>
+        <a href="proxy-status.html" data-i18n="system_status">系统状态</a>
         <a href="tags.html" data-i18n="tags">标签</a>
         <a href="log.html" data-i18n="log">日志</a>
-        <!-- 播放器入口：移动端必备 -->
         <a href="#" id="panelPlayer">播放器</a>
         <a href="#" id="panelPomodoro">番茄钟</a>
         <a href="#" id="panelDrink">喝水提醒</a>
@@ -171,19 +169,17 @@ function createMorePanel() {
     `;
     document.body.appendChild(morePanel);
 
-    // 绑定播放器事件 － 移动端通过这里打开播放器
-    document.getElementById('panelPlayer').addEventListener('click', (e) => {
-        e.preventDefault();
-        const playerToggleBtn = document.getElementById('playerToggleBtn');
-        if (playerToggleBtn) playerToggleBtn.click();
-        hideMorePanel();
-    });
+    // 阻止面板内所有点击事件冒泡到文档（防止移动端误关闭）
+    morePanel.addEventListener('click', (e) => e.stopPropagation());
+
+    // 工具事件（点击后关闭面板）
+    document.getElementById('panelPlayer').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('playerToggleBtn')?.click(); hideMorePanel(); });
     document.getElementById('panelPomodoro').addEventListener('click', (e) => { e.preventDefault(); togglePomodoro(); hideMorePanel(); });
     document.getElementById('panelDrink').addEventListener('click', (e) => { e.preventDefault(); toggleDrink(); hideMorePanel(); });
     document.getElementById('panelNotes').addEventListener('click', (e) => { e.preventDefault(); toggleNotes(); hideMorePanel(); });
     document.getElementById('panelDice').addEventListener('click', (e) => { e.preventDefault(); toggleDice(); hideMorePanel(); });
 
-    // 设置按钮下拉菜单
+    // 设置下拉菜单（带定位和阻止关闭）
     setupSettingDropdown('panelThemeBtn', [
         { text:'亮色', action:()=>{ if (document.documentElement.getAttribute('data-theme') === 'dark') toggleTheme(); } },
         { text:'暗色', action:()=>{ if (document.documentElement.getAttribute('data-theme') !== 'dark') toggleTheme(); } }
@@ -210,7 +206,7 @@ function setupSettingDropdown(btnId, items) {
     }
 
     btn.addEventListener('click', (e) => {
-        e.stopPropagation();
+        e.stopPropagation();                // 防止触发面板内部的关闭逻辑
         positionDropdown();
         document.querySelectorAll('.setting-dropdown.show').forEach(d => {
             if (d !== dropdown) d.classList.remove('show');
@@ -226,7 +222,10 @@ function setupSettingDropdown(btnId, items) {
         });
     });
 
-    document.addEventListener('click', () => dropdown.classList.remove('show'));
+    // 点击外部关闭下拉菜单
+    document.addEventListener('click', () => {
+        dropdown.classList.remove('show');
+    });
 }
 
 function showMorePanel() {
@@ -252,7 +251,7 @@ function initNavigation() {
     }
     document.querySelectorAll('[data-tooltip-text]').forEach(btn => {
         const tip = document.createElement('div'); tip.className = 'btn-tooltip'; tip.textContent = btn.dataset.tooltipText; document.body.appendChild(tip);
-        btn.addEventListener('mouseenter', () => { const r = btn.getBoundingClientRect(); tip.style.left = Math.max(10, r.left)+'px'; tip.style.top = r.bottom+8+'px'; tip.classList.add('show'); });
+        btn.addEventListener('mouseenter', () => { const r = btn.getBoundingClientRect(); tip.style.left = Math.max(10,r.left)+'px'; tip.style.top = r.bottom+8+'px'; tip.classList.add('show'); });
         btn.addEventListener('mouseleave', () => tip.classList.remove('show'));
     });
 
@@ -263,24 +262,40 @@ function initNavigation() {
     const show = () => { if (!morePanel) createMorePanel(); showMorePanel(); isOpen = true; };
     const hide = () => { hideMorePanel(); isOpen = false; };
 
-    const isMobile = () => window.innerWidth <= 700;
-
-    if (isMobile()) {
+    // 根据屏幕宽度采用不同的交互方式
+    if (window.innerWidth <= 700) {
+        // 移动端：点击“更多”按钮切换面板
         moreBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             isOpen ? hide() : show();
         });
+        // 点击文档空白处关闭面板（面板内点击已通过 stopPropagation 阻止冒泡，不会触发此事件）
         document.addEventListener('click', (e) => {
-            if (isOpen && !morePanel.contains(e.target) && !moreBtn.contains(e.target)) hide();
+            if (isOpen && !morePanel.contains(e.target) && !moreBtn.contains(e.target)) {
+                hide();
+            }
         });
     } else {
+        // 桌面端：仅使用悬停（移除点击，避免闪退）
         let timer;
-        moreBtn.addEventListener('mouseenter', () => { clearTimeout(timer); show(); });
-        moreBtn.addEventListener('mouseleave', () => { timer = setTimeout(hide, 200); });
-        moreBtn.addEventListener('click', (e) => { e.preventDefault(); isOpen ? hide() : show(); });
-        morePanel?.addEventListener('mouseenter', () => clearTimeout(timer));
-        morePanel?.addEventListener('mouseleave', () => { timer = setTimeout(hide, 200); });
+        moreBtn.addEventListener('mouseenter', () => {
+            clearTimeout(timer);
+            show();
+        });
+        moreBtn.addEventListener('mouseleave', () => {
+            timer = setTimeout(hide, 150);
+        });
+        // 鼠标进入面板时取消隐藏计时
+        if (morePanel) {
+            morePanel.addEventListener('mouseenter', () => clearTimeout(timer));
+            morePanel.addEventListener('mouseleave', () => { timer = setTimeout(hide, 150); });
+        }
+        // 鼠标进入设置下拉菜单时也保持面板
+        document.querySelectorAll('.setting-dropdown').forEach(d => {
+            d.addEventListener('mouseenter', () => clearTimeout(timer));
+            d.addEventListener('mouseleave', () => { timer = setTimeout(hide, 150); });
+        });
     }
 
     const backBtn = document.getElementById('backToTopBtn');
@@ -426,50 +441,50 @@ function initFavicon(){
     const icons=['img/ico_1.ico','img/ico_2.ico','img/ico_3.ico','img/ico_4.ico'];
     let i=0;
     const l=document.getElementById('dynamic-favicon');
-    if(l) setInterval(()=>{ l.href=icons[i=(i+1)%4]; },1000);
+    if(l)setInterval(()=>{ l.href=icons[i=(i+1)%4]; },1000);
 }
 
 /* 文章系统 */
 async function loadArticleIndex(){ return await loadJSON('data-index.json'); }
 async function loadMarkdownArticle(path){
     try{
-        const r=await fetch(path); if(!r.ok) return null; const t=await r.text(); const lines=t.split('\n');
+        const r=await fetch(path); if(!r.ok)return null; const t=await r.text(); const lines=t.split('\n');
         if(lines[0].trim()==='---'){
             const end=lines.indexOf('---',1); if(end>0){
                 const meta={}; const y=lines.slice(1,end);
                 for(const l of y){
-                    const ci=l.indexOf(':'); if(ci===-1) continue;
+                    const ci=l.indexOf(':'); if(ci===-1)continue;
                     const key=l.slice(0,ci).trim();
                     let val=l.slice(ci+1).trim();
                     if(key==='tags'){
                         if(val.startsWith('[')&&val.endsWith(']')) val=val.slice(1,-1).split(',').map(v=>v.trim().replace(/^['"]|['"]$/g,'')).filter(v=>v.length>0);
                         else val=val.split(',').map(v=>v.trim()).filter(v=>v.length>0);
-                    } else val=val.replace(/^['"]|['"]$/g,'');
+                    }else val=val.replace(/^['"]|['"]$/g,'');
                     meta[key]=val;
                 }
                 const content=lines.slice(end+1).join('\n').trim(); return {meta,content};
             }
         }
         return {meta:{title:'无标题'},content:t};
-    } catch(e){ console.warn('文章加载失败',path,e); return null; }
+    }catch(e){ console.warn('文章加载失败',path,e); return null; }
 }
 
 async function getAllArticles(){
     const idx=await loadArticleIndex();
     const arts=[];
-    if(idx.articles) for(const p of idx.articles){ const a=await loadMarkdownArticle(p); if(a) arts.push(a); }
+    if(idx.articles) for(const p of idx.articles){ const a=await loadMarkdownArticle(p); if(a)arts.push(a); }
     arts.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return arts;
 }
 async function getCards(){
     const idx=await loadArticleIndex();
     const cards=[];
-    if(idx.cards) for(const p of idx.cards){ const a=await loadMarkdownArticle(p); if(a) cards.push(a); }
+    if(idx.cards) for(const p of idx.cards){ const a=await loadMarkdownArticle(p); if(a)cards.push(a); }
     cards.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return cards;
 }
 async function getFiles(){
     const idx=await loadArticleIndex();
     const files=[];
-    if(idx.files) for(const p of idx.files){ const a=await loadMarkdownArticle(p); if(a) files.push(a); }
+    if(idx.files) for(const p of idx.files){ const a=await loadMarkdownArticle(p); if(a)files.push(a); }
     files.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||'')); return files;
 }
 async function getAllContent(){
@@ -503,34 +518,34 @@ async function fetchWithRetry(targetUrl) {
 
 async function fetchBilibiliUserInfo(uid){
     try{
-        const r = await fetchWithRetry(`https://api.bilibili.com/x/space/acc/info?mid=${uid}`);
-        const j = await r.json();
+        const r=await fetchWithRetry(`https://api.bilibili.com/x/space/acc/info?mid=${uid}`);
+        const j=await r.json();
         if(j.code===0&&j.data) return { name:j.data.name||'', avatar:j.data.face||'', sign:j.data.sign||'', level:j.data.level||0, birthday:j.data.birthday||'', sex:j.data.sex||'' };
-    } catch(e){ console.warn('用户信息获取失败', e); } return { name:'', avatar:'', sign:'', level:0, birthday:'', sex:'' };
+    }catch(e){ console.warn('用户信息获取失败',e); } return { name:'', avatar:'', sign:'', level:0, birthday:'', sex:'' };
 }
 async function fetchBilibiliRelationStat(uid){
     try{
-        const r = await fetchWithRetry(`https://api.bilibili.com/x/relation/stat?vmid=${uid}`);
-        const j = await r.json();
+        const r=await fetchWithRetry(`https://api.bilibili.com/x/relation/stat?vmid=${uid}`);
+        const j=await r.json();
         if(j.code===0&&j.data) return { follower:j.data.follower||0, following:j.data.following||0 };
-    } catch(e){ console.warn('关系获取失败', e); } return { follower:'--', following:'--' };
+    }catch(e){ console.warn('关系获取失败',e); } return { follower:'--', following:'--' };
 }
 async function fetchBilibiliUpstat(uid){
     try{
-        const r = await fetchWithRetry(`https://api.bilibili.com/x/space/upstat?mid=${uid}`);
-        const j = await r.json();
+        const r=await fetchWithRetry(`https://api.bilibili.com/x/space/upstat?mid=${uid}`);
+        const j=await r.json();
         if(j.code===0&&j.data) return { likes:j.data.likes||0, archiveView:(j.data.archive&&j.data.archive.view)||0, articleView:(j.data.article&&j.data.article.view)||0 };
-    } catch(e){ console.warn('UP数据获取失败', e); } return { likes:'--', archiveView:'--', articleView:'--' };
+    }catch(e){ console.warn('UP数据获取失败',e); } return { likes:'--', archiveView:'--', articleView:'--' };
 }
 async function fetchBilibiliLatestVideo(uid){
     try{
-        const r = await fetchWithRetry(`https://api.bilibili.com/x/space/wbi/arc/search?mid=${uid}&ps=1&pn=1`);
-        const j = await r.json();
+        const r=await fetchWithRetry(`https://api.bilibili.com/x/space/wbi/arc/search?mid=${uid}&ps=1&pn=1`);
+        const j=await r.json();
         if(j.code===0&&j.data&&j.data.list&&j.data.list.length>0){ const v=j.data.list[0]; return { bvid:v.bvid||'', title:v.title||'', pic:v.pic||'', play:v.play||0, created:v.created||0 }; }
-    } catch(e){ console.warn('最新视频获取失败', e); } return null;
+    }catch(e){ console.warn('最新视频获取失败',e); } return null;
 }
 async function fetchBilibiliFullProfile(uid){
-    const [info,rel,up,video] = await Promise.all([fetchBilibiliUserInfo(uid), fetchBilibiliRelationStat(uid), fetchBilibiliUpstat(uid), fetchBilibiliLatestVideo(uid)]);
+    const [info,rel,up,video]=await Promise.all([fetchBilibiliUserInfo(uid),fetchBilibiliRelationStat(uid),fetchBilibiliUpstat(uid),fetchBilibiliLatestVideo(uid)]);
     return { uid, ...info, ...rel, ...up, latestVideo: video };
 }
 
