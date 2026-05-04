@@ -40,96 +40,47 @@
 
 /* ========== 多色主题 ========== */
 [data-color-theme="purple"] {
-    --primary-400: #c084fc;
-    --primary-500: #a855f7;
-    --primary-600: #9333ea;
+    --primary-400: #c084fc; --primary-500: #a855f7; --primary-600: #9333ea;
 }
 [data-color-theme="purple"][data-theme="dark"] {
-    --primary-400: #a78bfa;
-    --primary-500: #8b5cf6;
-    --primary-600: #7c3aed;
+    --primary-400: #a78bfa; --primary-500: #8b5cf6; --primary-600: #7c3aed;
 }
 [data-color-theme="mint"] {
-    --primary-400: #34d399;
-    --primary-500: #10b981;
-    --primary-600: #059669;
+    --primary-400: #34d399; --primary-500: #10b981; --primary-600: #059669;
 }
 [data-color-theme="mint"][data-theme="dark"] {
-    --primary-400: #2dd4bf;
-    --primary-500: #14b8a6;
-    --primary-600: #0d9488;
+    --primary-400: #2dd4bf; --primary-500: #14b8a6; --primary-600: #0d9488;
 }
 [data-color-theme="sunset"] {
-    --primary-400: #fb923c;
-    --primary-500: #f97316;
-    --primary-600: #ea580c;
+    --primary-400: #fb923c; --primary-500: #f97316; --primary-600: #ea580c;
 }
 [data-color-theme="sunset"][data-theme="dark"] {
-    --primary-400: #fdba74;
-    --primary-500: #fb923c;
-    --primary-600: #f97316;
+    --primary-400: #fdba74; --primary-500: #fb923c; --primary-600: #f97316;
 }
 [data-color-theme="sakura"] {
-    --primary-400: #f9a8d4;
-    --primary-500: #f472b6;
-    --primary-600: #ec4899;
+    --primary-400: #f9a8d4; --primary-500: #f472b6; --primary-600: #ec4899;
 }
 [data-color-theme="sakura"][data-theme="dark"] {
-    --primary-400: #fbcfe8;
-    --primary-500: #f9a8d4;
-    --primary-600: #f472b6;
+    --primary-400: #fbcfe8; --primary-500: #f9a8d4; --primary-600: #f472b6;
 }
 
 /* 导航栏暗色文字高亮 */
-[data-theme="dark"] .top-bar {
-    background: rgba(15, 23, 42, 0.9);
-}
-[data-theme="dark"] .nav-item-wrapper a {
-    color: #e2e8f0;
-}
-[data-theme="dark"] .nav-item-wrapper a:hover {
-    color: var(--primary-400);
-}
-[data-theme="dark"] .site-title {
-    color: var(--primary-400);
-}
-[data-theme="dark"] .more-panel {
-    background: rgba(30, 41, 59, 0.95);
-    border-color: var(--primary-500);
-}
+[data-theme="dark"] .top-bar { background: rgba(15, 23, 42, 0.9); }
+[data-theme="dark"] .nav-item-wrapper a { color: #e2e8f0; }
+[data-theme="dark"] .nav-item-wrapper a:hover { color: var(--primary-400); }
+[data-theme="dark"] .site-title { color: var(--primary-400); }
+[data-theme="dark"] .more-panel { background: rgba(30, 41, 59, 0.95); border-color: var(--primary-500); }
 [data-theme="dark"] .more-panel a,
-[data-theme="dark"] .more-panel .setting-btn {
-    color: #e2e8f0;
-}
+[data-theme="dark"] .more-panel .setting-btn,
+[data-theme="dark"] .setting-dropdown a { color: #e2e8f0; }
 [data-theme="dark"] .more-panel a:hover,
-[data-theme="dark"] .more-panel .setting-btn:hover {
-    background: rgba(56, 189, 248, 0.15);
-    color: var(--primary-400);
-}
-
-/* 导航岛模式暗色 */
-[data-theme="dark"] .top-bar.island-mode {
-    background: rgba(15, 23, 42, 0.8);
-}
-
-/* 返回顶部按钮暗色 */
-[data-theme="dark"] #backToTopBtn {
-    background: var(--bg-card);
-    color: var(--text-title);
-}
+[data-theme="dark"] .more-panel .setting-btn:hover,
+[data-theme="dark"] .setting-dropdown a:hover { background: rgba(56, 189, 248, 0.15); color: var(--primary-400); }
 
 /* ========== 基础重置 ========== */
 *,*::before,*::after{ margin:0; padding:0; box-sizing:border-box; }
-body{
-    font-family:'Inter',sans-serif; background:var(--bg-page); color:var(--text-title);
-    line-height:1.5; overflow-x:hidden;
-}
-.bg-layer{
-    position:fixed; top:0; left:0; width:100%; height:100%;
-    background-image:url('img/bg.png');
-    background-size:cover; background-position:center; z-index:-1;
-    opacity:0.08; animation:bgZoomIn 1.2s ease forwards;
-}
+body{ font-family:'Inter',sans-serif; background:var(--bg-page); color:var(--text-title); line-height:1.5; overflow-x:hidden; }
+.bg-layer{ position:fixed; top:0; left:0; width:100%; height:100%; background-image:url('img/bg.png'); background-size:cover; background-position:center; z-index:-1; opacity:0.08; animation:bgZoomIn 1.2s ease forwards; }
 [data-theme="dark"] .bg-layer { opacity: 0.12; }
 @keyframes bgZoomIn{ 0%{ transform:scale(1.3); opacity:0; } 100%{ transform:scale(1); opacity:0.08; } }
 
@@ -191,7 +142,7 @@ body{
     .site-title img { height: 2.4rem !important; }
 }
 
-/* ========== “更多”面板（重构后） ========== */
+/* ========== “更多”面板 ========== */
 .more-panel {
     position: fixed;
     background: rgba(255,255,255,0.95);
@@ -255,6 +206,43 @@ body{
     flex: 1;
     min-width: 70px;
     background: var(--bg-card);
+}
+
+/* 设置下拉菜单（语言 / 颜色） */
+.setting-dropdown {
+    position: absolute;
+    background: var(--bg-card);
+    border: 1px solid var(--primary-500);
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    z-index: 10002;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 8px;
+    min-width: 120px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(5px);
+    transition: opacity 0.15s, transform 0.15s, visibility 0.15s;
+    pointer-events: none;
+}
+.setting-dropdown.show {
+    opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto;
+}
+.setting-dropdown a {
+    text-decoration: none;
+    color: var(--text-title);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    display: block;
+    white-space: nowrap;
+}
+.setting-dropdown a:hover {
+    background: var(--bg-page);
+    color: var(--primary-600);
 }
 
 /* ========== 通用组件 ========== */
@@ -382,7 +370,8 @@ a, button, .btn, .card, .article-card, .card-item, .file-item,
 .wallpaper-card, .emoji-card, .clickable, [onclick],
 .nav-item-wrapper a, .custom-dropdown a, .lang-dropdown a,
 .submenu-item a, .submenu-list a, .mode-btn, .control-btn,
-#backToTopBtn, #downloadBtn, #speedLabel, .more-panel a, .more-panel .setting-btn {
+#backToTopBtn, #downloadBtn, #speedLabel, .more-panel a, .more-panel .setting-btn,
+.setting-dropdown a {
     cursor: url('img/zhengchang_luoxiaohei.gif') 16 16, pointer;
 }
 input[type="text"], input[type="search"], input[type="password"],
