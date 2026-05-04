@@ -51,10 +51,10 @@
 │   ├── projects.json        # 项目链接数据
 │   └── webos-config.json    # WebOS 直链配置
 ├── lang/                    # 多语言文件
-│   ├── zh.json / 
-│   ├── en.json / 
-│   ├── ja.json / 
-│   └── ko.json /
+│   ├── zh.json
+│   ├── en.json
+│   ├── ja.json
+│   └── ko.json
 ├── img/                     # 图片资源（头像、图标、光标、降级图等）
 ├── background/              # 壁纸文件（本地降级用）
 ├── emoji/                   # 表情包图片及压缩包
