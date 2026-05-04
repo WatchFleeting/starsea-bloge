@@ -119,7 +119,7 @@
         try {
             const data = await loadJSON('data/wallpapers.json');
 
-            // 按 series 分组
+            // 按 series 分组，无系列归入“其他”
             const groups = {};
             data.forEach(item => {
                 const key = item.series || '其他';
@@ -177,10 +177,9 @@
 
         let mediaTag;
         if (isDynamic) {
-            // 视频降级：poster 或 onerror 暂不适用，但可忽略
             mediaTag = `<video src="${previewUrl}" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>`;
         } else {
-            // 图片降级：统一使用本地 fallback.png，与表情包一致
+            // 图片降级：统一使用 img/fallback.png
             mediaTag = `<img src="${previewUrl}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.src='img/fallback.png'">`;
         }
 
