@@ -31,5 +31,14 @@
   "sw_lang": "Language",
   "sw_theme": "Theme",
   "theme_light": "Light",
-  "theme_dark": "Dark"
+  "theme_dark": "Dark",
+  "settings": "Settings",
+  "refresh": "Refresh",
+  "bio_default": "Sharing & Tech enthusiast",
+  "new_images": "New Images",
+  "old_images": "Old Images",
+  "pomodoro": "🍅 Pomodoro",
+  "drink": "💧 Drink Water",
+  "notes": "📝 Notes",
+  "dice": "🎲 Dice"
 }
