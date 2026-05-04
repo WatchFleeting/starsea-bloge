@@ -31,5 +31,14 @@
   "sw_lang": "语言",
   "sw_theme": "主题",
   "theme_light": "亮色",
-  "theme_dark": "暗色"
+  "theme_dark": "暗色",
+  "settings": "设置",
+  "refresh": "重新检测",
+  "bio_default": "资源分享 · 技术爱好者",
+  "new_images": "新版图片",
+  "old_images": "旧版图片",
+  "pomodoro": "🍅 番茄钟",
+  "drink": "💧 喝水提醒",
+  "notes": "📝 便签",
+  "dice": "🎲 骰子"
 }
