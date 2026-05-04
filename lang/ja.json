@@ -31,5 +31,14 @@
   "sw_lang": "言語",
   "sw_theme": "テーマ",
   "theme_light": "ライト",
-  "theme_dark": "ダーク"
+  "theme_dark": "ダーク",
+  "settings": "設定",
+  "refresh": "リフレッシュ",
+  "bio_default": "共有＆技術愛好家",
+  "new_images": "新しい画像",
+  "old_images": "古い画像",
+  "pomodoro": "🍅 ポモドーロ",
+  "drink": "💧 水分補給",
+  "notes": "📝 メモ",
+  "dice": "🎲 サイコロ"
 }
