@@ -69,6 +69,8 @@ async function loadLanguage(lang) {
         currentLang = lang;
         updateLangButtons();
         updateThemeButtons();
+        // 重新渲染导航菜单以更新文本
+        if (typeof renderMenu === 'function') renderMenu();
     } catch(e) {
         console.warn('语言文件加载失败', e);
     }
@@ -140,7 +142,11 @@ function updateThemeButtons() {
     }
 }
 
-/* ================= 导航交互（重写版） ================= */
+/* ================= 动态菜单渲染 ================= */
+let dropdownMenu = null;
+let renderMenu = () => {};
+
+/* ================= 导航交互 ================= */
 function initNavigation() {
     const topBar = document.getElementById('mainTopBar');
     if (topBar) {
@@ -169,137 +175,143 @@ function initNavigation() {
     });
 
     const moreBtn = document.getElementById('moreBtn');
-    if (moreBtn) {
-        const dropdown = document.createElement('div');
-        dropdown.className = 'custom-dropdown';
-        dropdown.id = 'unifiedMoreDropdown';
-        document.body.appendChild(dropdown);
+    if (!moreBtn) return;
 
-        const buildMenuItems = () => [
-            { href: 'background.html', i18n: 'image_library', text: '图片库' },
-            { href: 'emoji.html', i18n: 'emoji_pack', text: '表情包' },
-            { href: 'FriendURL.html', i18n: 'friends', text: '友链' },
-            { href: 'tags.html', i18n: 'tags', text: '标签' },
-            { href: 'log.html', i18n: 'log', text: '日志' },
-            { href: 'proxy-status.html', i18n: 'proxy_monitor', text: '代理监控' },
-            { href: 'https://afdian.com/a/lyxh-took', i18n: 'afdian', text: '爱发电', external: true },
-            { href: 'https://github.com/WatchFleeting', i18n: 'github', text: 'GitHub', external: true },
-            { type: 'hr' },
-            { id: 'mobilePlayerBtn', i18n: 'player', text: '🎵 播放器', action: () => document.getElementById('playerToggleBtn')?.click() },
-            { id: 'pomodoroBtn', text: '🍅 番茄钟', action: () => toggleFloatingTool('floatingPomodoro', 'pomodoroIframe', 'pomodoro.html') },
-            { id: 'drinkBtn', text: '💧 喝水提醒', action: () => toggleFloatingTool('floatingDrink', 'drinkIframe', 'drink.html') },
-            { id: 'notesBtn', text: '📝 便签', action: () => toggleFloatingTool('floatingNotes', 'notesIframe', 'notes.html') },
-            { id: 'diceBtn', text: '🎲 骰子', action: () => toggleFloatingTool('floatingDice', 'diceIframe', 'dice.html') },
-            { type: 'hr' },
-            { type: 'submenu', i18n: 'sw_theme', text: '主题 ▸', submenuId: 'themeSubmenu', items: [
-                { id: 'themeMobileLight', i18n: 'theme_light', text: '亮色', action: toggleTheme },
-                { id: 'themeMobileDark', i18n: 'theme_dark', text: '暗色', action: toggleTheme }
-            ]},
-            { type: 'submenu', i18n: 'sw_lang', text: '语言 ▸', submenuId: 'langSubmenu', items: SUPPORTED_LANGS.map(lang => ({
-                i18n: lang.code, text: lang.name, action: () => switchLanguage(lang.code), className: 'lang-option', dataLang: lang.code
-            }))}
-        ];
+    dropdownMenu = document.createElement('div');
+    dropdownMenu.className = 'custom-dropdown';
+    dropdownMenu.id = 'unifiedMoreDropdown';
+    document.body.appendChild(dropdownMenu);
 
-        const renderMenu = () => {
-            dropdown.innerHTML = '';
-            const items = buildMenuItems();
-            items.forEach(item => {
-                if (item.type === 'hr') {
-                    dropdown.appendChild(document.createElement('hr'));
-                } else if (item.type === 'submenu') {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'submenu-item';
-                    wrapper.style.display = 'flex';
-                    wrapper.style.alignItems = 'center';
-                    const toggleLink = document.createElement('a');
-                    toggleLink.href = '#';
-                    toggleLink.setAttribute('data-i18n', item.i18n);
-                    toggleLink.textContent = item.text;
-                    toggleLink.style.flex = '1';
-                    toggleLink.addEventListener('click', (e) => {
+    const buildMenuItems = () => [
+        { href: 'background.html', i18n: 'image_library', text: '图片库' },
+        { href: 'emoji.html', i18n: 'emoji_pack', text: '表情包' },
+        { href: 'FriendURL.html', i18n: 'friends', text: '友链' },
+        { href: 'tags.html', i18n: 'tags', text: '标签' },
+        { href: 'log.html', i18n: 'log', text: '日志' },
+        { href: 'proxy-status.html', i18n: 'proxy_monitor', text: '代理监控' },
+        { href: 'https://afdian.com/a/lyxh-took', i18n: 'afdian', text: '爱发电', external: true },
+        { href: 'https://github.com/WatchFleeting', i18n: 'github', text: 'GitHub', external: true },
+        { type: 'hr' },
+        { id: 'mobilePlayerBtn', i18n: 'player', text: '🎵 播放器', action: () => document.getElementById('playerToggleBtn')?.click() },
+        { id: 'pomodoroBtn', i18n: 'pomodoro', text: '🍅 番茄钟', action: togglePomodoro },
+        { id: 'drinkBtn', i18n: 'drink', text: '💧 喝水提醒', action: toggleDrink },
+        { id: 'notesBtn', i18n: 'notes', text: '📝 便签', action: toggleNotes },
+        { id: 'diceBtn', i18n: 'dice', text: '🎲 骰子', action: toggleDice },
+        { type: 'hr' },
+        { type: 'submenu', i18n: 'sw_theme', text: '主题 ▸', submenuId: 'themeSubmenu', items: [
+            { id: 'themeMobileLight', i18n: 'theme_light', text: '亮色', action: toggleTheme },
+            { id: 'themeMobileDark', i18n: 'theme_dark', text: '暗色', action: toggleTheme }
+        ]},
+        { type: 'submenu', i18n: 'sw_lang', text: '语言 ▸', submenuId: 'langSubmenu', items: SUPPORTED_LANGS.map(lang => ({
+            i18n: lang.code, text: lang.name, action: () => switchLanguage(lang.code), className: 'lang-option', dataLang: lang.code
+        }))}
+    ];
+
+    const render = () => {
+        if (!dropdownMenu) return;
+        dropdownMenu.innerHTML = '';
+        const items = buildMenuItems();
+        items.forEach(item => {
+            if (item.type === 'hr') {
+                dropdownMenu.appendChild(document.createElement('hr'));
+            } else if (item.type === 'submenu') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'submenu-item';
+                wrapper.style.display = 'flex';
+                wrapper.style.alignItems = 'center';
+                const toggleLink = document.createElement('a');
+                toggleLink.href = '#';
+                toggleLink.setAttribute('data-i18n', item.i18n);
+                toggleLink.textContent = (i18nData && i18nData[item.i18n]) ? i18nData[item.i18n] : item.text;
+                toggleLink.style.flex = '1';
+                toggleLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const sub = document.getElementById(item.submenuId);
+                    if (sub) sub.style.display = sub.style.display === 'block' ? 'none' : 'block';
+                });
+                wrapper.appendChild(toggleLink);
+                const subList = document.createElement('div');
+                subList.id = item.submenuId;
+                subList.className = 'submenu-list';
+                subList.style.display = 'none';
+                subList.style.paddingLeft = '12px';
+                item.items.forEach(subItem => {
+                    const subLink = document.createElement('a');
+                    subLink.href = '#';
+                    if (subItem.id) subLink.id = subItem.id;
+                    if (subItem.i18n) subLink.setAttribute('data-i18n', subItem.i18n);
+                    if (subItem.className) subLink.className = subItem.className;
+                    if (subItem.dataLang) subLink.setAttribute('data-lang', subItem.dataLang);
+                    subLink.textContent = (i18nData && i18nData[subItem.i18n]) ? i18nData[subItem.i18n] : subItem.text;
+                    subLink.addEventListener('click', (e) => {
                         e.preventDefault();
-                        e.stopPropagation();
-                        const sub = document.getElementById(item.submenuId);
-                        if (sub) sub.style.display = sub.style.display === 'block' ? 'none' : 'block';
+                        if (subItem.action) subItem.action();
                     });
-                    wrapper.appendChild(toggleLink);
-                    const subList = document.createElement('div');
-                    subList.id = item.submenuId;
-                    subList.className = 'submenu-list';
-                    subList.style.display = 'none';
-                    subList.style.paddingLeft = '12px';
-                    item.items.forEach(subItem => {
-                        const subLink = document.createElement('a');
-                        subLink.href = '#';
-                        if (subItem.id) subLink.id = subItem.id;
-                        if (subItem.i18n) subLink.setAttribute('data-i18n', subItem.i18n);
-                        if (subItem.className) subLink.className = subItem.className;
-                        if (subItem.dataLang) subLink.setAttribute('data-lang', subItem.dataLang);
-                        subLink.textContent = subItem.text;
-                        subLink.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            if (subItem.action) subItem.action();
-                        });
-                        subList.appendChild(subLink);
-                    });
-                    dropdown.appendChild(wrapper);
-                    dropdown.appendChild(subList);
+                    subList.appendChild(subLink);
+                });
+                dropdownMenu.appendChild(wrapper);
+                dropdownMenu.appendChild(subList);
+            } else {
+                const link = document.createElement('a');
+                link.href = item.href || '#';
+                if (item.i18n) {
+                    link.setAttribute('data-i18n', item.i18n);
+                    link.textContent = (i18nData && i18nData[item.i18n]) ? i18nData[item.i18n] : item.text;
                 } else {
-                    const link = document.createElement('a');
-                    link.href = item.href || '#';
-                    if (item.i18n) link.setAttribute('data-i18n', item.i18n);
                     link.textContent = item.text;
-                    if (item.external) link.target = '_blank';
-                    if (item.id) link.id = item.id;
-                    if (item.action) {
-                        link.href = '#';
-                        link.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            item.action();
-                        });
-                    }
-                    dropdown.appendChild(link);
                 }
-            });
-        };
+                if (item.external) link.target = '_blank';
+                if (item.id) link.id = item.id;
+                if (item.action) {
+                    link.href = '#';
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        item.action();
+                    });
+                }
+                dropdownMenu.appendChild(link);
+            }
+        });
+    };
 
-        renderMenu();
+    renderMenu = render;
+    renderMenu();
 
-        let isOpen = false;
-        const show = () => {
-            const rect = moreBtn.getBoundingClientRect();
-            dropdown.style.left = Math.min(rect.right - dropdown.offsetWidth, innerWidth - dropdown.offsetWidth - 10) + 'px';
-            dropdown.style.top = rect.bottom + 8 + 'px';
-            dropdown.classList.add('show');
-            isOpen = true;
-        };
-        const hide = () => {
-            dropdown.classList.remove('show');
-            isOpen = false;
-        };
+    let isOpen = false;
+    const show = () => {
+        const rect = moreBtn.getBoundingClientRect();
+        dropdownMenu.style.left = Math.min(rect.right - dropdownMenu.offsetWidth, innerWidth - dropdownMenu.offsetWidth - 10) + 'px';
+        dropdownMenu.style.top = rect.bottom + 8 + 'px';
+        dropdownMenu.classList.add('show');
+        isOpen = true;
+    };
+    const hide = () => {
+        dropdownMenu.classList.remove('show');
+        isOpen = false;
+    };
 
-        const isMobile = () => window.innerWidth <= 700;
+    const isMobile = () => window.innerWidth <= 700;
 
-        if (isMobile()) {
-            moreBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (isOpen) hide(); else show();
-            });
-            document.addEventListener('click', (e) => {
-                if (isOpen && !dropdown.contains(e.target) && !moreBtn.contains(e.target)) hide();
-            });
-        } else {
-            let timer;
-            moreBtn.addEventListener('mouseenter', () => {
-                clearTimeout(timer);
-                show();
-            });
-            moreBtn.addEventListener('mouseleave', () => {
-                timer = setTimeout(hide, 200);
-            });
-            dropdown.addEventListener('mouseenter', () => clearTimeout(timer));
-            dropdown.addEventListener('mouseleave', () => hide());
-        }
+    if (isMobile()) {
+        moreBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isOpen) hide(); else show();
+        });
+        document.addEventListener('click', (e) => {
+            if (isOpen && !dropdownMenu.contains(e.target) && !moreBtn.contains(e.target)) hide();
+        });
+    } else {
+        let timer;
+        moreBtn.addEventListener('mouseenter', () => {
+            clearTimeout(timer);
+            show();
+        });
+        moreBtn.addEventListener('mouseleave', () => {
+            timer = setTimeout(hide, 200);
+        });
+        dropdownMenu.addEventListener('mouseenter', () => clearTimeout(timer));
+        dropdownMenu.addEventListener('mouseleave', () => hide());
     }
 
     const backBtn = document.getElementById('backToTopBtn');
@@ -312,7 +324,7 @@ function initNavigation() {
     }
 }
 
-/* 通用浮动工具切换函数 */
+/* ================= 新工具切换函数（带居中） ================= */
 function toggleFloatingTool(containerId, iframeId, src) {
     const container = document.getElementById(containerId);
     const iframe = document.getElementById(iframeId);
@@ -323,9 +335,17 @@ function toggleFloatingTool(containerId, iframeId, src) {
         if (iframe.src === 'about:blank' || iframe.src === '') {
             iframe.src = src;
         }
+        container.style.left = Math.max(0, (window.innerWidth - (container.offsetWidth || 360)) / 2) + 'px';
+        container.style.top = Math.max(0, (window.innerHeight - (container.offsetHeight || 320)) / 2) + 'px';
+        container.style.transform = '';
         container.classList.add('show');
     }
 }
+
+function togglePomodoro() { toggleFloatingTool('floatingPomodoro', 'pomodoroIframe', 'pomodoro.html'); }
+function toggleDrink() { toggleFloatingTool('floatingDrink', 'drinkIframe', 'drink.html'); }
+function toggleNotes() { toggleFloatingTool('floatingNotes', 'notesIframe', 'notes.html'); }
+function toggleDice() { toggleFloatingTool('floatingDice', 'diceIframe', 'dice.html'); }
 
 /* ================= 浮动播放器核心逻辑 ================= */
 function initPlayer(){
@@ -613,6 +633,5 @@ async function initSite(){
     initNavigation();
     initPlayer();
     initFavicon();
-    // 四个小组件无需额外的 init 函数，因为点击时动态切换 iframe 并显示
 }
 document.addEventListener('DOMContentLoaded', initSite);
