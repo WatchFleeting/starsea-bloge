@@ -39,7 +39,6 @@
 }
 
 /* ========== 多色主题（与亮/暗模式组合） ========== */
-/* 紫罗兰 */
 [data-color-theme="purple"] {
     --primary-400: #c084fc;
     --primary-500: #a855f7;
@@ -51,7 +50,6 @@
     --primary-600: #7c3aed;
 }
 
-/* 薄荷绿 */
 [data-color-theme="mint"] {
     --primary-400: #34d399;
     --primary-500: #10b981;
@@ -63,7 +61,6 @@
     --primary-600: #0d9488;
 }
 
-/* 落日橙 */
 [data-color-theme="sunset"] {
     --primary-400: #fb923c;
     --primary-500: #f97316;
@@ -75,7 +72,6 @@
     --primary-600: #f97316;
 }
 
-/* 樱花粉 */
 [data-color-theme="sakura"] {
     --primary-400: #f9a8d4;
     --primary-500: #f472b6;
@@ -96,13 +92,12 @@
 }
 [data-theme="dark"] .nav-item-wrapper a:hover {
     color: var(--primary-400);
-    border-bottom-color: var(--primary-400);
 }
 [data-theme="dark"] .site-title {
     color: var(--primary-400);
 }
 
-/* 下拉菜单暗色适配 */
+/* 下拉菜单暗色适配（保留以防其他页面使用） */
 [data-theme="dark"] .custom-dropdown,
 [data-theme="dark"] .lang-dropdown {
     background: rgba(30, 41, 59, 0.95);
@@ -151,14 +146,14 @@ body{
 [data-theme="dark"] .bg-layer { opacity: 0.12; }
 @keyframes bgZoomIn{ 0%{ transform:scale(1.3); opacity:0; } 100%{ transform:scale(1); opacity:0.08; } }
 
-/* ========== 导航栏（现代化毛玻璃） ========== */
+/* ========== 导航栏（现代毛玻璃） ========== */
 .top-bar{
     position:fixed; top:0; left:0; width:100%;
     background: rgba(255,255,255,0.75);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--primary-400);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
     padding:0 clamp(16px,4vw,32px); height:64px; display:flex;
     align-items:center; justify-content:space-between; z-index:100;
     transition: all 0.3s;
@@ -173,25 +168,23 @@ body{
 .site-title img{ height:2.8rem; }
 .nav-links{ display:flex; gap:clamp(4px,2vw,20px); align-items:center; }
 .nav-item-wrapper a{
-    text-decoration:none; font-weight:600; font-size:0.95rem; color:var(--text-title);
-    padding: 8px 12px; border-radius: 10px;
+    text-decoration:none; font-weight:600; font-size:0.92rem; color:var(--text-title);
+    padding: 8px 14px; border-radius: 12px;
     transition: var(--transition);
-    position: relative;
 }
 .nav-item-wrapper a:hover{
-    background: rgba(var(--primary-400), 0.1);
+    background: rgba(var(--primary-400), 0.08);
     color: var(--primary-600);
 }
-.nav-item-wrapper a.active { background: rgba(var(--primary-500), 0.15); color: var(--primary-600); }
 
 /* 导航岛效果（桌面） */
 @media(min-width:701px){
     .top-bar.island-mode{
         top:12px; left:12px; width:calc(100% - 24px); height:56px; padding:0 24px;
-        background: rgba(255,255,255,0.65);
+        background: rgba(255,255,255,0.6);
         backdrop-filter: blur(25px);
-        border-radius: 18px;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.06);
     }
     .top-bar.island-mode .site-title img{ height:2.4rem; }
     body.island-active{ margin-top:80px; }
@@ -200,7 +193,6 @@ body{
 /* 移动端隐藏部分元素 */
 @media(max-width:700px){
     .nav-item-wrapper.nav-item-player{ display:none; }
-    #settingsBtn { display: none; }
     .site-title { font-size: 1.2rem !important; }
     .site-title img { height: 2.2rem !important; }
     .nav-links { gap: 4px !important; }
@@ -229,7 +221,7 @@ body{
 .btn-primary{ background:var(--primary-500); color:white; }
 .btn-primary:hover{ background:var(--primary-600); }
 
-/* 浮动播放器 */
+/* ========== 浮动播放器 ========== */
 .floating-player {
     position: fixed; width: 580px; height: 400px;
     background: #111827; border: 1px solid var(--primary-500);
@@ -256,7 +248,7 @@ body{
 .win-btn:hover { color: white; }
 .win-btn.close:hover { background: #ef4444; color: white; }
 
-/* 提示工具 */
+/* ========== 工具提示 ========== */
 .btn-tooltip{
     position:fixed; background:rgba(0,0,0,0.85); color:white; font-size:12px;
     padding:5px 10px; border-left:2px solid var(--primary-500); z-index:10001;
@@ -264,19 +256,19 @@ body{
 }
 .btn-tooltip.show{ opacity:1; transform:translateY(0); }
 
-/* 下拉菜单（更多 / 设置） */
+/* ========== 下拉菜单（保留，其他页面可能使用） ========== */
 .custom-dropdown, .lang-dropdown {
     position:fixed;
     background: rgba(255,255,255,0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border:1px solid var(--primary-500);
-    border-radius:14px; z-index:10001;
-    display:flex; flex-direction:column; gap:2px; padding:6px 10px;
+    border-radius:16px; z-index:10001;
+    display:flex; flex-direction:column; gap:2px; padding:8px 10px;
     opacity:0; transform:translateY(10px);
     transition:opacity 0.2s,transform 0.2s;
-    pointer-events:none; min-width: 160px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    pointer-events:none; min-width: 170px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
 }
 .custom-dropdown.show, .lang-dropdown.show{
     opacity:1; transform:translateY(0); pointer-events:auto;
@@ -284,15 +276,61 @@ body{
 .custom-dropdown a, .lang-dropdown a,
 .submenu-item a, .submenu-list a {
     text-decoration:none; color:var(--text-title); padding:8px 14px;
-    border-radius:10px; font-weight:500; font-size:0.9rem;
+    border-radius:12px; font-weight:500; font-size:0.9rem;
+    transition: background 0.15s;
 }
 .custom-dropdown a:hover, .lang-dropdown a:hover,
 .submenu-item a:hover, .submenu-list a:hover {
-    background:var(--bg-page); color:var(--primary-600);
+    background: var(--bg-page); color: var(--primary-600);
 }
 
-/* 二级子菜单默认隐藏 */
 .submenu-list { display: none; }
+.submenu-list a {
+    display: block;
+    white-space: nowrap;
+}
+
+/* ========== 工具面板（中央弹出） ========== */
+.tools-panel-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);
+    z-index: 9000; display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden; transition: opacity 0.25s, visibility 0.25s;
+}
+.tools-panel-overlay.show { opacity: 1; visibility: visible; }
+.tools-panel {
+    background: var(--bg-card); border-radius: 24px; padding: 24px;
+    border: 1px solid var(--border-light); box-shadow: var(--shadow-hover);
+    max-width: 520px; width: 90%; display: grid;
+    grid-template-columns: repeat(2, 1fr); gap: 16px;
+}
+.tools-panel .tool-item {
+    background: var(--bg-page); border: 1px solid var(--border-light);
+    border-radius: 16px; padding: 16px; text-align: center;
+    cursor: pointer; transition: var(--transition);
+    text-decoration: none; color: var(--text-title);
+    display: flex; flex-direction: column; align-items: center;
+    gap: 8px; font-weight: 600;
+}
+.tools-panel .tool-item:hover {
+    background: var(--primary-500); color: white; border-color: var(--primary-500);
+    transform: translateY(-2px);
+}
+.tools-panel .setting-row {
+    grid-column: span 2; display: flex; gap: 12px;
+    justify-content: center; flex-wrap: wrap;
+    margin-top: 12px; padding-top: 16px;
+    border-top: 1px solid var(--border-light);
+}
+.tools-panel .setting-btn {
+    background: var(--bg-page); border: 1px solid var(--border-light);
+    border-radius: 40px; padding: 8px 16px; font-weight: 600;
+    cursor: pointer; transition: var(--transition); font-size: 0.85rem;
+    color: var(--text-title);
+}
+.tools-panel .setting-btn:hover {
+    background: var(--primary-500); color: white; border-color: var(--primary-500);
+}
 
 /* ========== 文章弹窗 ========== */
 .article-detail-overlay{
@@ -313,7 +351,7 @@ body{
     cursor:pointer; background:none; border:none;
 }
 
-/* 状态样式 */
+/* ========== 状态样式 ========== */
 .loading-skeleton{ color:var(--text-muted); background:var(--bg-card); padding:12px; border-left:3px solid var(--primary-500); }
 .error-text{ color:#e05a5a; background:#fff5f5; padding:12px; border-left:3px solid #e05a5a; }
 .tag-badge{
@@ -336,7 +374,7 @@ a, button, .btn, .card, .article-card, .card-item, .file-item,
 .wallpaper-card, .emoji-card, .clickable, [onclick],
 .nav-item-wrapper a, .custom-dropdown a, .lang-dropdown a,
 .submenu-item a, .submenu-list a, .mode-btn, .control-btn,
-#backToTopBtn, #downloadBtn, #speedLabel {
+#backToTopBtn, #downloadBtn, #speedLabel, .tools-panel .tool-item, .tools-panel .setting-btn {
     cursor: url('img/zhengchang_luoxiaohei.gif') 16 16, pointer;
 }
 input[type="text"], input[type="search"], input[type="password"],
