@@ -80,6 +80,7 @@ function updateLangButtons() {
     });
 }
 async function switchLanguage(langCode) { if (langCode !== currentLang) await loadLanguage(langCode); }
+function toggleMobileSubmenu(id) { const el = document.getElementById(id); if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block'; }
 
 /* 明暗主题 */
 function initTheme() { const saved = localStorage.getItem('theme') || 'light'; document.documentElement.setAttribute('data-theme', saved); updateThemeButtons(); }
@@ -115,66 +116,68 @@ function updateColorButtons() {
     });
 }
 
-/* ================= 工具面板（中央弹出） ================= */
-let toolsPanelOverlay = null;
+/* ================= 导航交互（重构版） ================= */
+let morePanel = null;
 
-function createToolsPanel() {
-    if (toolsPanelOverlay) return;
-    toolsPanelOverlay = document.createElement('div');
-    toolsPanelOverlay.className = 'tools-panel-overlay';
-    toolsPanelOverlay.innerHTML = `
-        <div class="tools-panel">
-            <div class="tool-item" id="panelPomodoro"><span>番茄钟</span></div>
-            <div class="tool-item" id="panelNotes"><span>便签</span></div>
-            <div class="tool-item" id="panelDrink"><span>喝水提醒</span></div>
-            <div class="tool-item" id="panelDice"><span>骰子</span></div>
-            <div class="tool-item" id="panelLinks"><span>友链</span></div>
-            <div class="tool-item" id="panelProxy"><span>代理监控</span></div>
-            <div class="setting-row">
-                <button class="setting-btn" id="panelThemeToggle">亮色/暗色</button>
-                <button class="setting-btn" id="panelColorNext">切换颜色</button>
-                <button class="setting-btn" id="panelLangNext">切换语言</button>
-            </div>
+function createMorePanel() {
+    if (morePanel) return;
+    morePanel = document.createElement('div');
+    morePanel.className = 'more-panel';
+    morePanel.id = 'morePanel';
+    morePanel.innerHTML = `
+        <a href="background.html" data-i18n="image_library">图片库</a>
+        <a href="emoji.html" data-i18n="emoji_pack">表情包</a>
+        <a href="FriendURL.html" data-i18n="friends">友链</a>
+        <a href="proxy-status.html" data-i18n="proxy_monitor">代理监控</a>
+        <a href="tags.html" data-i18n="tags">标签</a>
+        <a href="log.html" data-i18n="log">日志</a>
+        <a href="#" id="panelPomodoro">番茄钟</a>
+        <a href="#" id="panelDrink">喝水提醒</a>
+        <a href="#" id="panelNotes">便签</a>
+        <a href="#" id="panelDice">骰子</a>
+        <div class="setting-row">
+            <button class="setting-btn" id="panelThemeToggle">亮色/暗色</button>
+            <button class="setting-btn" id="panelColorNext">切换颜色</button>
+            <button class="setting-btn" id="panelLangNext">切换语言</button>
         </div>
     `;
-    document.body.appendChild(toolsPanelOverlay);
+    document.body.appendChild(morePanel);
 
-    toolsPanelOverlay.querySelector('#panelPomodoro').addEventListener('click', () => { togglePomodoro(); hideToolsPanel(); });
-    toolsPanelOverlay.querySelector('#panelNotes').addEventListener('click', () => { toggleNotes(); hideToolsPanel(); });
-    toolsPanelOverlay.querySelector('#panelDrink').addEventListener('click', () => { toggleDrink(); hideToolsPanel(); });
-    toolsPanelOverlay.querySelector('#panelDice').addEventListener('click', () => { toggleDice(); hideToolsPanel(); });
-    toolsPanelOverlay.querySelector('#panelLinks').addEventListener('click', () => { window.location.href = 'FriendURL.html'; });
-    toolsPanelOverlay.querySelector('#panelProxy').addEventListener('click', () => { window.location.href = 'proxy-status.html'; });
+    document.getElementById('panelPomodoro').addEventListener('click', (e) => { e.preventDefault(); togglePomodoro(); hideMorePanel(); });
+    document.getElementById('panelDrink').addEventListener('click', (e) => { e.preventDefault(); toggleDrink(); hideMorePanel(); });
+    document.getElementById('panelNotes').addEventListener('click', (e) => { e.preventDefault(); toggleNotes(); hideMorePanel(); });
+    document.getElementById('panelDice').addEventListener('click', (e) => { e.preventDefault(); toggleDice(); hideMorePanel(); });
 
-    toolsPanelOverlay.querySelector('#panelThemeToggle').addEventListener('click', toggleTheme);
-    toolsPanelOverlay.querySelector('#panelColorNext').addEventListener('click', () => {
+    document.getElementById('panelThemeToggle').addEventListener('click', toggleTheme);
+    document.getElementById('panelColorNext').addEventListener('click', () => {
         const colors = ['default', 'purple', 'mint', 'sunset', 'sakura'];
         const cur = document.documentElement.getAttribute('data-color-theme') || 'default';
         const idx = colors.indexOf(cur);
         const next = colors[(idx + 1) % colors.length];
         switchColor(next);
     });
-    toolsPanelOverlay.querySelector('#panelLangNext').addEventListener('click', () => {
+    document.getElementById('panelLangNext').addEventListener('click', () => {
         const langs = SUPPORTED_LANGS.map(l => l.code);
         const idx = langs.indexOf(currentLang);
         const next = langs[(idx + 1) % langs.length];
         switchLanguage(next);
     });
-
-    toolsPanelOverlay.addEventListener('click', (e) => {
-        if (e.target === toolsPanelOverlay) hideToolsPanel();
-    });
 }
 
-function showToolsPanel() {
-    if (!toolsPanelOverlay) createToolsPanel();
-    toolsPanelOverlay.classList.add('show');
-}
-function hideToolsPanel() {
-    if (toolsPanelOverlay) toolsPanelOverlay.classList.remove('show');
+function showMorePanel() {
+    if (!morePanel) createMorePanel();
+    const btn = document.getElementById('moreBtn');
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    morePanel.style.left = Math.min(rect.right - morePanel.offsetWidth, innerWidth - morePanel.offsetWidth - 10) + 'px';
+    morePanel.style.top = rect.bottom + 8 + 'px';
+    morePanel.classList.add('show');
 }
 
-/* ================= 导航交互（简化版） ================= */
+function hideMorePanel() {
+    if (morePanel) morePanel.classList.remove('show');
+}
+
 function initNavigation() {
     const topBar = document.getElementById('mainTopBar');
     if (topBar) {
@@ -187,11 +190,39 @@ function initNavigation() {
         btn.addEventListener('mouseleave', () => tip.classList.remove('show'));
     });
 
-    const toolsBtn = document.getElementById('toolsPanelBtn');
-    if (toolsBtn) {
-        toolsBtn.addEventListener('click', (e) => {
+    const moreBtn = document.getElementById('moreBtn');
+    if (!moreBtn) return;
+
+    let isOpen = false;
+    const show = () => { if (!morePanel) createMorePanel(); showMorePanel(); isOpen = true; };
+    const hide = () => { hideMorePanel(); isOpen = false; };
+
+    const isMobile = () => window.innerWidth <= 700;
+
+    if (isMobile()) {
+        moreBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            showToolsPanel();
+            e.stopPropagation();
+            isOpen ? hide() : show();
+        });
+        document.addEventListener('click', (e) => {
+            if (isOpen && !morePanel.contains(e.target) && !moreBtn.contains(e.target)) hide();
+        });
+    } else {
+        let timer;
+        moreBtn.addEventListener('mouseenter', () => { clearTimeout(timer); show(); });
+        moreBtn.addEventListener('mouseleave', () => { timer = setTimeout(hide, 200); });
+        moreBtn.addEventListener('click', (e) => { e.preventDefault(); isOpen ? hide() : show(); });
+        // 面板自身悬停保持
+        document.addEventListener('mouseover', (e) => {
+            if (morePanel && morePanel.contains(e.target)) {
+                clearTimeout(timer);
+            }
+        });
+        document.addEventListener('mouseout', (e) => {
+            if (morePanel && !morePanel.contains(e.relatedTarget) && !moreBtn.contains(e.relatedTarget)) {
+                timer = setTimeout(hide, 200);
+            }
         });
     }
 
@@ -499,7 +530,6 @@ async function initSite(){
     initTheme();
     initColorTheme();
     await Promise.all([loadHeader(), loadFooter(), loadPlayer()]);
-    createToolsPanel();
     initNavigation();
     initPlayer();
     initFavicon();
