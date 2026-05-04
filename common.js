@@ -31,7 +31,11 @@ async function loadJSON(url){ const r=await fetch(url); if(!r.ok)throw new Error
 /* ================= WebOS 直链配置 ================= */
 let webosConfig = null;
 async function loadWebosConfig() {
-    try { webosConfig = await loadJSON('data/webos-config.json'); } catch(e) { console.warn('WebOS 配置加载失败', e); }
+    try {
+        webosConfig = await loadJSON('data/webos.json');   // 已改为新文件名
+    } catch(e) {
+        console.warn('WebOS 配置加载失败', e);
+    }
 }
 function getWebosUrl(category, fileName) {
     if (!webosConfig || !webosConfig[category]) return null;
@@ -136,9 +140,9 @@ function updateSettingButtons() {
     }
 }
 
-/* ================= 导航菜单（全新防闪退逻辑） ================= */
+/* ================= 导航菜单（防闪退版） ================= */
 let morePanel = null;
-let hideTimer = null;                // 全局延迟关闭计时器
+let hideTimer = null;
 
 function createMorePanel() {
     if (morePanel) return;
@@ -148,8 +152,8 @@ function createMorePanel() {
     morePanel.innerHTML = `
         <a href="background.html" data-i18n="image_library">图片库</a>
         <a href="emoji.html" data-i18n="emoji_pack">表情包</a>
-        <a href="FriendURL.html" data-i18n="friends">友链</a>
-        <a href="proxy-status.html" data-i18n="system_status">系统状态</a>
+        <a href="friends.html" data-i18n="friends">友链</a>
+        <a href="status.html" data-i18n="system_status">系统状态</a>
         <a href="tags.html" data-i18n="tags">标签</a>
         <a href="log.html" data-i18n="log">日志</a>
         <a href="#" id="panelPlayer">播放器</a>
@@ -165,17 +169,14 @@ function createMorePanel() {
     `;
     document.body.appendChild(morePanel);
 
-    // 阻止面板内部点击冒泡，防止移动端点击后误关闭
     morePanel.addEventListener('click', (e) => e.stopPropagation());
 
-    // 工具事件（点击后主动关闭面板）
     document.getElementById('panelPlayer').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('playerToggleBtn')?.click(); closeMorePanel(); });
     document.getElementById('panelPomodoro').addEventListener('click', (e) => { e.preventDefault(); togglePomodoro(); closeMorePanel(); });
     document.getElementById('panelDrink').addEventListener('click', (e) => { e.preventDefault(); toggleDrink(); closeMorePanel(); });
     document.getElementById('panelNotes').addEventListener('click', (e) => { e.preventDefault(); toggleNotes(); closeMorePanel(); });
     document.getElementById('panelDice').addEventListener('click', (e) => { e.preventDefault(); toggleDice(); closeMorePanel(); });
 
-    // 设置下拉菜单
     setupSettingDropdown('panelThemeBtn', [
         { text:'亮色', action:()=>{ if (document.documentElement.getAttribute('data-theme') === 'dark') toggleTheme(); } },
         { text:'暗色', action:()=>{ if (document.documentElement.getAttribute('data-theme') !== 'dark') toggleTheme(); } }
@@ -185,13 +186,8 @@ function createMorePanel() {
 
     updateSettingButtons();
 
-    // 为面板自身绑定悬停保持（桌面端关键）
-    morePanel.addEventListener('mouseenter', () => {
-        clearTimeout(hideTimer);
-    });
-    morePanel.addEventListener('mouseleave', () => {
-        hideTimer = setTimeout(closeMorePanel, 200);
-    });
+    morePanel.addEventListener('mouseenter', () => clearTimeout(hideTimer));
+    morePanel.addEventListener('mouseleave', () => { hideTimer = setTimeout(closeMorePanel, 200); });
 }
 
 function setupSettingDropdown(btnId, items) {
@@ -203,7 +199,6 @@ function setupSettingDropdown(btnId, items) {
     dropdown.innerHTML = items.map(item => `<a href="#">${item.text}</a>`).join('');
     document.body.appendChild(dropdown);
 
-    // 下拉菜单悬停保持
     dropdown.addEventListener('mouseenter', () => clearTimeout(hideTimer));
     dropdown.addEventListener('mouseleave', () => { hideTimer = setTimeout(closeMorePanel, 200); });
 
@@ -230,11 +225,8 @@ function setupSettingDropdown(btnId, items) {
         });
     });
 
-    // 点击外部关闭下拉
     document.addEventListener('click', (e) => {
-        if (!dropdown.contains(e.target) && e.target !== btn) {
-            dropdown.classList.remove('show');
-        }
+        if (!dropdown.contains(e.target) && e.target !== btn) dropdown.classList.remove('show');
     });
 }
 
@@ -269,33 +261,18 @@ function initNavigation() {
     const moreBtn = document.getElementById('moreBtn');
     if (!moreBtn) return;
 
-    // 桌面端：悬停控制
     if (window.innerWidth > 700) {
-        moreBtn.addEventListener('mouseenter', () => {
-            clearTimeout(hideTimer);
-            openMorePanel();
-        });
-        moreBtn.addEventListener('mouseleave', () => {
-            hideTimer = setTimeout(closeMorePanel, 200);
-        });
-    }
-    // 移动端：点击切换
-    else {
+        moreBtn.addEventListener('mouseenter', () => { clearTimeout(hideTimer); openMorePanel(); });
+        moreBtn.addEventListener('mouseleave', () => { hideTimer = setTimeout(closeMorePanel, 200); });
+    } else {
         moreBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            if (morePanel && morePanel.classList.contains('show')) {
-                closeMorePanel();
-            } else {
-                openMorePanel();
-            }
+            if (morePanel && morePanel.classList.contains('show')) closeMorePanel();
+            else openMorePanel();
         });
-        // 点击外部关闭
         document.addEventListener('click', (e) => {
-            if (morePanel && morePanel.classList.contains('show') &&
-                !morePanel.contains(e.target) && e.target !== moreBtn && !moreBtn.contains(e.target)) {
-                closeMorePanel();
-            }
+            if (morePanel && morePanel.classList.contains('show') && !morePanel.contains(e.target) && e.target !== moreBtn && !moreBtn.contains(e.target)) closeMorePanel();
         });
     }
 
