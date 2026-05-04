@@ -177,8 +177,10 @@
 
         let mediaTag;
         if (isDynamic) {
+            // 视频降级：poster 或 onerror 暂不适用，但可忽略
             mediaTag = `<video src="${previewUrl}" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>`;
         } else {
+            // 图片降级：统一使用本地 fallback.png，与表情包一致
             mediaTag = `<img src="${previewUrl}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.src='img/fallback.png'">`;
         }
 
@@ -186,9 +188,9 @@
 
         let typeIndicator = '';
         if (isGallery) {
-            typeIndicator = `<div class="gallery-indicator">🖼️ 图集 (${item.images.length}张)</div>`;
+            typeIndicator = `<div class="gallery-indicator">图集 (${item.images.length}张)</div>`;
         } else if (isDynamic) {
-            typeIndicator = `<div class="video-indicator">🎬 动态图片</div>`;
+            typeIndicator = `<div class="video-indicator">动态图片</div>`;
         }
 
         const dataType = isGallery ? 'gallery' : item.type;
@@ -230,7 +232,7 @@
         overlay.className = 'gallery-overlay';
         overlay.innerHTML = `
             <button class="gallery-close-btn">&times;</button>
-            <img src="${currentGallery[index]}" alt="图集">
+            <img src="${currentGallery[index]}" alt="图集" onerror="this.src='img/fallback.png'">
             <div class="gallery-controls">
                 <button class="gallery-nav-btn" id="galleryPrev"><i class="fas fa-chevron-left"></i></button>
                 <span style="color:white;">${index + 1} / ${currentGallery.length}</span>
@@ -258,7 +260,7 @@
         if (!overlay) {
             overlay = document.createElement('div');
             overlay.className = 'image-preview-overlay';
-            overlay.innerHTML = '<button class="image-preview-close">&times;</button><img class="image-preview-img">';
+            overlay.innerHTML = '<button class="image-preview-close">&times;</button><img class="image-preview-img" onerror="this.src=\'img/fallback.png\'">';
             document.body.appendChild(overlay);
             overlay.querySelector('.image-preview-close').onclick = () => overlay.classList.remove('active');
             overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.classList.remove('active'); });
