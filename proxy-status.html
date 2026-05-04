@@ -123,25 +123,60 @@
         proxyContent.classList.toggle('show');
     });
 
-    // 监控项定义
+    // ---------- 动态获取检测URL ----------
+    async function getWallpaperTestUrl() {
+        try {
+            const data = await loadJSON('data/wallpapers.json');
+            if (data.length === 0) return null;
+            const item = data[0];
+            const fileName = item.type === 'gallery' && item.images ? item.images[0] : item.filename;
+            return getUrl('wallpapers', fileName);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async function getEmojiTestUrl() {
+        try {
+            const emojis = await loadJSON('data/emojis.json');
+            if (!emojis || emojis.length === 0) return null;
+            // 随机选一个
+            const randomIndex = Math.floor(Math.random() * emojis.length);
+            const fileName = emojis[randomIndex].file;
+            // 表情包图片优先 WebOS？这里保持本地方案，若需要 WebOS 可扩展
+            const webosUrl = typeof getWebosUrl === 'function' ? getWebosUrl('emoji', fileName) : null;
+            if (webosUrl) return webosUrl;
+            return './emoji/' + encodeURIComponent(fileName);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    // 通用URL生成器（用于图片库，适配本地方案和 WebOS）
+    function getUrl(category, fileName) {
+        const webosUrl = typeof getWebosUrl === 'function' ? getWebosUrl(category, fileName) : null;
+        if (webosUrl) return webosUrl;
+        if (category === 'wallpapers') return './background/' + encodeURIComponent(fileName);
+        if (category === 'emoji') return './emoji/' + encodeURIComponent(fileName);
+        return '';
+    }
+
+    // 监控项定义 (动态URL在检测时生成)
     const monitors = [
         { name: '网站首页', icon: 'fa-home', url: '.' },
         { name: 'WebOS 连接', icon: 'fa-cloud', type: 'webos' },
         { name: '播放器资源', icon: 'fa-music', url: 'Vocaloid/Vdata.json', needJson: true },
-        { name: '图片库资源', icon: 'fa-images', url: 'background/fallback.png' },
-        { name: '表情包资源', icon: 'fa-smile', url: 'emoji/鸿渚_emoji_01.zip' },
+        { name: '图片库资源', icon: 'fa-images', dynamicUrl: getWallpaperTestUrl },
+        { name: '表情包资源', icon: 'fa-smile', dynamicUrl: getEmojiTestUrl },
         { name: '友链数据', icon: 'fa-link', url: 'data/friends.json', needJson: true },
         { name: '通知数据', icon: 'fa-bell', url: 'data/notifications.json', needJson: true },
         { name: '项目链接数据', icon: 'fa-folder', url: 'data/projects.json', needJson: true }
     ];
 
-    // 获取 WebOS 测试 URL
     function getWebosTestUrl() {
         if (typeof webosConfig === 'undefined' || !webosConfig) return null;
-        // 尝试从 wallpapers 或 songs 配置中获取 base
         const cfg = webosConfig.wallpapers || webosConfig.songs;
         if (cfg && cfg.base && cfg.shareId) {
-            // 用一个已知存在的文件名测试，这里用 wallpapers.json 中可能存在的文件
             return `${cfg.base}/${cfg.shareId}/fallback.png`;
         }
         return null;
@@ -152,44 +187,45 @@
         let success = false;
         let statusCode = 0;
         let errorMsg = '';
+        let url = item.url;
         try {
-            let url;
-            if (item.type === 'webos') {
+            if (item.dynamicUrl) {
+                url = await item.dynamicUrl();
+                if (!url) throw new Error('无法获取检测URL');
+            } else if (item.type === 'webos') {
                 url = getWebosTestUrl();
                 if (!url) throw new Error('WebOS 未配置');
-            } else {
-                url = item.url;
             }
-            const resp = await fetch(url, { method: 'HEAD', cache: 'no-cache' });
+            if (!url) throw new Error('URL 为空');
+
+            let resp = await fetch(url, { method: 'HEAD', cache: 'no-cache' });
             statusCode = resp.status;
             if (resp.ok) {
                 success = true;
             } else if (statusCode === 404) {
-                // 尝试 GET 请求（有些文件不支持 HEAD）
-                const resp2 = await fetch(url, { cache: 'no-cache' });
-                statusCode = resp2.status;
-                success = resp2.ok;
-            } else {
-                success = false;
+                resp = await fetch(url, { cache: 'no-cache' });
+                statusCode = resp.status;
+                success = resp.ok;
             }
         } catch (e) {
             errorMsg = e.message;
             success = false;
         }
         const latency = Math.round(performance.now() - start);
-        return { success, statusCode, latency, errorMsg };
+        return { success, statusCode, latency, errorMsg, url };
     }
 
     function renderMonitorItem(item, result) {
         const iconClass = result.success ? 'fa-check-circle' : 'fa-times-circle';
         const statusClass = result.success ? 'success' : 'fail';
         const statusText = result.success ? '正常' : (result.errorMsg || `状态 ${result.statusCode}`);
+        const urlDisplay = result.url || item.url || (item.type==='webos' ? 'WebOS 配置' : '');
         return `
             <div class="monitor-item">
                 <div class="monitor-icon"><i class="fas ${item.icon}"></i></div>
                 <div class="monitor-info">
                     <h3>${item.name}</h3>
-                    <div class="monitor-url">${item.url || (item.type==='webos' ? 'WebOS 配置' : '')}</div>
+                    <div class="monitor-url">${urlDisplay}</div>
                 </div>
                 <div class="monitor-status ${statusClass}">
                     <i class="fas ${iconClass}"></i> ${statusText}
@@ -214,7 +250,7 @@
         }
     }
 
-    // CORS 代理检测（保留）
+    // CORS 代理检测（保持不变）
     function renderProxyLoading() {
         proxyListEl.innerHTML = CORS_PROXIES.map(proxy => `
             <div class="proxy-item testing" id="proxy-${escapeHtml(proxy)}">
@@ -248,7 +284,6 @@
         const statusEl = item.querySelector('.proxy-status');
         const detailEl = item.querySelector('.proxy-detail');
         if (result.success) {
-            statusEl.className = 'proxy-status';
             statusEl.innerHTML = '<i class="fas fa-check-circle" style="color:#16a34a;"></i>';
             detailEl.innerHTML = `<span class="latency">${result.latency}ms</span><span>👤 ${escapeHtml(result.name)}</span>`;
         } else {
