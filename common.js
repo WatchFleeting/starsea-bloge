@@ -30,7 +30,13 @@ async function loadJSON(url){ const r=await fetch(url); if(!r.ok)throw new Error
 
 /* ================= WebOS 直链配置 ================= */
 let webosConfig = null;
-async function loadWebosConfig() { try { webosConfig = await loadJSON('data/webos-config.json'); } catch(e) { console.warn('WebOS 配置加载失败', e); } }
+async function loadWebosConfig() {
+    try {
+        webosConfig = await loadJSON('data/webos-config.json');
+    } catch(e) {
+        console.warn('WebOS 配置加载失败', e);
+    }
+}
 function getWebosUrl(category, fileName) {
     if (!webosConfig || !webosConfig[category]) return null;
     const cfg = webosConfig[category];
@@ -56,7 +62,6 @@ async function loadLanguage(lang) {
         currentLang = lang;
         updateLangButtons();
         updateThemeButtons();
-        if (typeof renderMenu === 'function') renderMenu();
     } catch(e) { console.warn('语言文件加载失败', e); }
 }
 function applyTranslations() {
@@ -75,7 +80,6 @@ function updateLangButtons() {
     });
 }
 async function switchLanguage(langCode) { if (langCode !== currentLang) await loadLanguage(langCode); }
-function toggleMobileSubmenu(id) { const el = document.getElementById(id); if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block'; }
 
 /* 明暗主题 */
 function initTheme() { const saved = localStorage.getItem('theme') || 'light'; document.documentElement.setAttribute('data-theme', saved); updateThemeButtons(); }
@@ -111,10 +115,66 @@ function updateColorButtons() {
     });
 }
 
-/* ================= 导航交互（纯文字菜单） ================= */
-let dropdownMenu = null;
-let renderMenu = () => {};
+/* ================= 工具面板（中央弹出） ================= */
+let toolsPanelOverlay = null;
 
+function createToolsPanel() {
+    if (toolsPanelOverlay) return;
+    toolsPanelOverlay = document.createElement('div');
+    toolsPanelOverlay.className = 'tools-panel-overlay';
+    toolsPanelOverlay.innerHTML = `
+        <div class="tools-panel">
+            <div class="tool-item" id="panelPomodoro"><span>番茄钟</span></div>
+            <div class="tool-item" id="panelNotes"><span>便签</span></div>
+            <div class="tool-item" id="panelDrink"><span>喝水提醒</span></div>
+            <div class="tool-item" id="panelDice"><span>骰子</span></div>
+            <div class="tool-item" id="panelLinks"><span>友链</span></div>
+            <div class="tool-item" id="panelProxy"><span>代理监控</span></div>
+            <div class="setting-row">
+                <button class="setting-btn" id="panelThemeToggle">亮色/暗色</button>
+                <button class="setting-btn" id="panelColorNext">切换颜色</button>
+                <button class="setting-btn" id="panelLangNext">切换语言</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(toolsPanelOverlay);
+
+    toolsPanelOverlay.querySelector('#panelPomodoro').addEventListener('click', () => { togglePomodoro(); hideToolsPanel(); });
+    toolsPanelOverlay.querySelector('#panelNotes').addEventListener('click', () => { toggleNotes(); hideToolsPanel(); });
+    toolsPanelOverlay.querySelector('#panelDrink').addEventListener('click', () => { toggleDrink(); hideToolsPanel(); });
+    toolsPanelOverlay.querySelector('#panelDice').addEventListener('click', () => { toggleDice(); hideToolsPanel(); });
+    toolsPanelOverlay.querySelector('#panelLinks').addEventListener('click', () => { window.location.href = 'FriendURL.html'; });
+    toolsPanelOverlay.querySelector('#panelProxy').addEventListener('click', () => { window.location.href = 'proxy-status.html'; });
+
+    toolsPanelOverlay.querySelector('#panelThemeToggle').addEventListener('click', toggleTheme);
+    toolsPanelOverlay.querySelector('#panelColorNext').addEventListener('click', () => {
+        const colors = ['default', 'purple', 'mint', 'sunset', 'sakura'];
+        const cur = document.documentElement.getAttribute('data-color-theme') || 'default';
+        const idx = colors.indexOf(cur);
+        const next = colors[(idx + 1) % colors.length];
+        switchColor(next);
+    });
+    toolsPanelOverlay.querySelector('#panelLangNext').addEventListener('click', () => {
+        const langs = SUPPORTED_LANGS.map(l => l.code);
+        const idx = langs.indexOf(currentLang);
+        const next = langs[(idx + 1) % langs.length];
+        switchLanguage(next);
+    });
+
+    toolsPanelOverlay.addEventListener('click', (e) => {
+        if (e.target === toolsPanelOverlay) hideToolsPanel();
+    });
+}
+
+function showToolsPanel() {
+    if (!toolsPanelOverlay) createToolsPanel();
+    toolsPanelOverlay.classList.add('show');
+}
+function hideToolsPanel() {
+    if (toolsPanelOverlay) toolsPanelOverlay.classList.remove('show');
+}
+
+/* ================= 导航交互（简化版） ================= */
 function initNavigation() {
     const topBar = document.getElementById('mainTopBar');
     if (topBar) {
@@ -127,95 +187,12 @@ function initNavigation() {
         btn.addEventListener('mouseleave', () => tip.classList.remove('show'));
     });
 
-    const moreBtn = document.getElementById('moreBtn');
-    if (!moreBtn) return;
-    dropdownMenu = document.createElement('div');
-    dropdownMenu.className = 'custom-dropdown';
-    dropdownMenu.id = 'unifiedMoreDropdown';
-    document.body.appendChild(dropdownMenu);
-
-    const buildMenuItems = () => [
-        { href:'background.html', i18n:'image_library', text:'图片库' },
-        { href:'emoji.html', i18n:'emoji_pack', text:'表情包' },
-        { href:'FriendURL.html', i18n:'friends', text:'友链' },
-        { href:'tags.html', i18n:'tags', text:'标签' },
-        { href:'log.html', i18n:'log', text:'日志' },
-        { href:'proxy-status.html', i18n:'proxy_monitor', text:'代理监控' },
-        { href:'https://afdian.com/a/lyxh-took', i18n:'afdian', text:'爱发电', external:true },
-        { href:'https://github.com/WatchFleeting', i18n:'github', text:'GitHub', external:true },
-        { id:'mobilePlayerBtn', i18n:'player', text:'播放器', action:()=>document.getElementById('playerToggleBtn')?.click() },
-        { id:'pomodoroBtn', i18n:'pomodoro', text:'番茄钟', action:togglePomodoro },
-        { id:'drinkBtn', i18n:'drink', text:'喝水提醒', action:toggleDrink },
-        { id:'notesBtn', i18n:'notes', text:'便签', action:toggleNotes },
-        { id:'diceBtn', i18n:'dice', text:'骰子', action:toggleDice },
-        { type:'submenu', i18n:'sw_theme', text:'主题', submenuId:'themeSubmenu', items:[
-            { id:'themeMobileLight', i18n:'theme_light', text:'亮色', action:toggleTheme },
-            { id:'themeMobileDark', i18n:'theme_dark', text:'暗色', action:toggleTheme }
-        ]},
-        { type:'submenu', i18n:'color_theme', text:'颜色', submenuId:'colorSubmenu', items:[
-            { i18n:'color_blue', text:'青蓝', className:'color-option', dataColor:'default', action:()=>switchColor('default') },
-            { i18n:'color_purple', text:'紫罗兰', className:'color-option', dataColor:'purple', action:()=>switchColor('purple') },
-            { i18n:'color_mint', text:'薄荷绿', className:'color-option', dataColor:'mint', action:()=>switchColor('mint') },
-            { i18n:'color_sunset', text:'落日橙', className:'color-option', dataColor:'sunset', action:()=>switchColor('sunset') },
-            { i18n:'color_sakura', text:'樱花粉', className:'color-option', dataColor:'sakura', action:()=>switchColor('sakura') }
-        ]},
-        { type:'submenu', i18n:'sw_lang', text:'语言', submenuId:'langSubmenu', items: SUPPORTED_LANGS.map(lang=>({
-            i18n:lang.code, text:lang.name, className:'lang-option', dataLang:lang.code, action:()=>switchLanguage(lang.code)
-        }))}
-    ];
-
-    const render = () => {
-        if (!dropdownMenu) return;
-        dropdownMenu.innerHTML = '';
-        const items = buildMenuItems();
-        items.forEach(item => {
-            if (item.type === 'submenu') {
-                const wrapper = document.createElement('div'); wrapper.className = 'submenu-item'; wrapper.style.display = 'flex'; wrapper.style.alignItems = 'center';
-                const toggle = document.createElement('a'); toggle.href = '#'; toggle.setAttribute('data-i18n', item.i18n);
-                toggle.textContent = (i18nData && i18nData[item.i18n]) ? i18nData[item.i18n] : item.text;
-                toggle.style.flex = '1';
-                toggle.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); const s = document.getElementById(item.submenuId); if (s) s.style.display = s.style.display==='block'?'none':'block'; });
-                wrapper.appendChild(toggle);
-                const subList = document.createElement('div'); subList.id = item.submenuId; subList.className = 'submenu-list'; subList.style.display = 'none'; subList.style.paddingLeft = '12px';
-                item.items.forEach(sub => {
-                    const a = document.createElement('a'); a.href = '#';
-                    if (sub.id) a.id = sub.id; if (sub.i18n) a.setAttribute('data-i18n', sub.i18n);
-                    if (sub.className) a.className = sub.className; if (sub.dataColor) a.setAttribute('data-color', sub.dataColor); if (sub.dataLang) a.setAttribute('data-lang', sub.dataLang);
-                    a.textContent = (i18nData && i18nData[sub.i18n]) ? i18nData[sub.i18n] : sub.text;
-                    a.addEventListener('click', e => { e.preventDefault(); if (sub.action) sub.action(); });
-                    subList.appendChild(a);
-                });
-                dropdownMenu.appendChild(wrapper);
-                dropdownMenu.appendChild(subList);
-            } else {
-                const a = document.createElement('a'); a.href = item.href || '#';
-                if (item.i18n) { a.setAttribute('data-i18n', item.i18n); a.textContent = (i18nData && i18nData[item.i18n]) ? i18nData[item.i18n] : item.text; }
-                else a.textContent = item.text;
-                if (item.external) a.target = '_blank';
-                if (item.id) a.id = item.id;
-                if (item.action) { a.href = '#'; a.addEventListener('click', e => { e.preventDefault(); item.action(); }); }
-                dropdownMenu.appendChild(a);
-            }
+    const toolsBtn = document.getElementById('toolsPanelBtn');
+    if (toolsBtn) {
+        toolsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showToolsPanel();
         });
-    };
-
-    renderMenu = render;
-    renderMenu();
-
-    let isOpen = false;
-    const show = () => { const r = moreBtn.getBoundingClientRect(); dropdownMenu.style.left = Math.min(r.right - dropdownMenu.offsetWidth, innerWidth - dropdownMenu.offsetWidth - 10) + 'px'; dropdownMenu.style.top = r.bottom + 8 + 'px'; dropdownMenu.classList.add('show'); isOpen = true; };
-    const hide = () => { dropdownMenu.classList.remove('show'); isOpen = false; };
-    const isMobile = () => innerWidth <= 700;
-
-    if (isMobile()) {
-        moreBtn.addEventListener('click', e => { e.stopPropagation(); isOpen ? hide() : show(); });
-        document.addEventListener('click', e => { if (isOpen && !dropdownMenu.contains(e.target) && !moreBtn.contains(e.target)) hide(); });
-    } else {
-        let timer;
-        moreBtn.addEventListener('mouseenter', () => { clearTimeout(timer); show(); });
-        moreBtn.addEventListener('mouseleave', () => { timer = setTimeout(hide, 200); });
-        dropdownMenu.addEventListener('mouseenter', () => clearTimeout(timer));
-        dropdownMenu.addEventListener('mouseleave', () => hide());
     }
 
     const backBtn = document.getElementById('backToTopBtn');
@@ -522,6 +499,7 @@ async function initSite(){
     initTheme();
     initColorTheme();
     await Promise.all([loadHeader(), loadFooter(), loadPlayer()]);
+    createToolsPanel();
     initNavigation();
     initPlayer();
     initFavicon();
