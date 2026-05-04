@@ -31,5 +31,14 @@
   "sw_lang": "언어",
   "sw_theme": "테마",
   "theme_light": "라이트",
-  "theme_dark": "다크"
+  "theme_dark": "다크",
+  "settings": "설정",
+  "refresh": "새로고침",
+  "bio_default": "공유 및 기술 애호가",
+  "new_images": "새 이미지",
+  "old_images": "이전 이미지",
+  "pomodoro": "🍅 포모도로",
+  "drink": "💧 물 마시기",
+  "notes": "📝 메모",
+  "dice": "🎲 주사위"
 }
