@@ -38,7 +38,7 @@
     --shadow-hover: 0 12px 24px -8px rgba(14,165,233,0.2);
 }
 
-/* ========== 多色主题（与亮/暗模式组合） ========== */
+/* ========== 多色主题 ========== */
 [data-color-theme="purple"] {
     --primary-400: #c084fc;
     --primary-500: #a855f7;
@@ -49,7 +49,6 @@
     --primary-500: #8b5cf6;
     --primary-600: #7c3aed;
 }
-
 [data-color-theme="mint"] {
     --primary-400: #34d399;
     --primary-500: #10b981;
@@ -60,7 +59,6 @@
     --primary-500: #14b8a6;
     --primary-600: #0d9488;
 }
-
 [data-color-theme="sunset"] {
     --primary-400: #fb923c;
     --primary-500: #f97316;
@@ -71,7 +69,6 @@
     --primary-500: #fb923c;
     --primary-600: #f97316;
 }
-
 [data-color-theme="sakura"] {
     --primary-400: #f9a8d4;
     --primary-500: #f472b6;
@@ -96,26 +93,16 @@
 [data-theme="dark"] .site-title {
     color: var(--primary-400);
 }
-
-/* 下拉菜单暗色适配（保留以防其他页面使用） */
-[data-theme="dark"] .custom-dropdown,
-[data-theme="dark"] .lang-dropdown {
+[data-theme="dark"] .more-panel {
     background: rgba(30, 41, 59, 0.95);
     border-color: var(--primary-500);
 }
-[data-theme="dark"] .submenu-list {
-    background: transparent;
-}
-[data-theme="dark"] .custom-dropdown a,
-[data-theme="dark"] .lang-dropdown a,
-[data-theme="dark"] .submenu-item a,
-[data-theme="dark"] .submenu-list a {
+[data-theme="dark"] .more-panel a,
+[data-theme="dark"] .more-panel .setting-btn {
     color: #e2e8f0;
 }
-[data-theme="dark"] .custom-dropdown a:hover,
-[data-theme="dark"] .lang-dropdown a:hover,
-[data-theme="dark"] .submenu-item a:hover,
-[data-theme="dark"] .submenu-list a:hover {
+[data-theme="dark"] .more-panel a:hover,
+[data-theme="dark"] .more-panel .setting-btn:hover {
     background: rgba(56, 189, 248, 0.15);
     color: var(--primary-400);
 }
@@ -146,7 +133,7 @@ body{
 [data-theme="dark"] .bg-layer { opacity: 0.12; }
 @keyframes bgZoomIn{ 0%{ transform:scale(1.3); opacity:0; } 100%{ transform:scale(1); opacity:0.08; } }
 
-/* ========== 导航栏（现代毛玻璃） ========== */
+/* ========== 导航栏 ========== */
 .top-bar{
     position:fixed; top:0; left:0; width:100%;
     background: rgba(255,255,255,0.75);
@@ -177,7 +164,7 @@ body{
     color: var(--primary-600);
 }
 
-/* 导航岛效果（桌面） */
+/* 导航岛效果 */
 @media(min-width:701px){
     .top-bar.island-mode{
         top:12px; left:12px; width:calc(100% - 24px); height:56px; padding:0 24px;
@@ -190,7 +177,7 @@ body{
     body.island-active{ margin-top:80px; }
 }
 
-/* 移动端隐藏部分元素 */
+/* 移动端 */
 @media(max-width:700px){
     .nav-item-wrapper.nav-item-player{ display:none; }
     .site-title { font-size: 1.2rem !important; }
@@ -198,12 +185,76 @@ body{
     .nav-links { gap: 4px !important; }
     .nav-item-wrapper a { font-size: 0.8rem !important; padding: 6px 8px !important; }
 }
-
-/* 小屏桌面缩减 */
 @media (min-width:701px) and (max-width:1000px) {
     .nav-links { gap: clamp(2px, 1vw, 10px); }
     .site-title { font-size: 1.3rem; }
     .site-title img { height: 2.4rem !important; }
+}
+
+/* ========== “更多”面板（重构后） ========== */
+.more-panel {
+    position: fixed;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--primary-500);
+    border-radius: 20px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+    z-index: 10001;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+    pointer-events: none;
+    min-width: 280px;
+    max-width: 360px;
+}
+.more-panel.show {
+    opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto;
+}
+.more-panel a,
+.more-panel .setting-btn {
+    background: var(--bg-page);
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--text-title);
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.85rem;
+}
+.more-panel a:hover,
+.more-panel .setting-btn:hover {
+    background: var(--primary-500);
+    color: white;
+    border-color: var(--primary-500);
+    transform: translateY(-1px);
+}
+.more-panel .setting-row {
+    grid-column: span 2;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 6px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-light);
+}
+.more-panel .setting-row .setting-btn {
+    flex: 1;
+    min-width: 70px;
+    background: var(--bg-card);
 }
 
 /* ========== 通用组件 ========== */
@@ -231,7 +282,6 @@ body{
 }
 .floating-player.show { opacity: 1; visibility: visible; }
 
-/* 平板/手机浮动窗口 */
 @media (min-width: 701px) and (max-width: 900px) {
     .floating-player { width: 80vw; height: 65vh; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; }
 }
@@ -290,48 +340,6 @@ body{
     white-space: nowrap;
 }
 
-/* ========== 工具面板（中央弹出） ========== */
-.tools-panel-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);
-    z-index: 9000; display: flex; align-items: center; justify-content: center;
-    opacity: 0; visibility: hidden; transition: opacity 0.25s, visibility 0.25s;
-}
-.tools-panel-overlay.show { opacity: 1; visibility: visible; }
-.tools-panel {
-    background: var(--bg-card); border-radius: 24px; padding: 24px;
-    border: 1px solid var(--border-light); box-shadow: var(--shadow-hover);
-    max-width: 520px; width: 90%; display: grid;
-    grid-template-columns: repeat(2, 1fr); gap: 16px;
-}
-.tools-panel .tool-item {
-    background: var(--bg-page); border: 1px solid var(--border-light);
-    border-radius: 16px; padding: 16px; text-align: center;
-    cursor: pointer; transition: var(--transition);
-    text-decoration: none; color: var(--text-title);
-    display: flex; flex-direction: column; align-items: center;
-    gap: 8px; font-weight: 600;
-}
-.tools-panel .tool-item:hover {
-    background: var(--primary-500); color: white; border-color: var(--primary-500);
-    transform: translateY(-2px);
-}
-.tools-panel .setting-row {
-    grid-column: span 2; display: flex; gap: 12px;
-    justify-content: center; flex-wrap: wrap;
-    margin-top: 12px; padding-top: 16px;
-    border-top: 1px solid var(--border-light);
-}
-.tools-panel .setting-btn {
-    background: var(--bg-page); border: 1px solid var(--border-light);
-    border-radius: 40px; padding: 8px 16px; font-weight: 600;
-    cursor: pointer; transition: var(--transition); font-size: 0.85rem;
-    color: var(--text-title);
-}
-.tools-panel .setting-btn:hover {
-    background: var(--primary-500); color: white; border-color: var(--primary-500);
-}
-
 /* ========== 文章弹窗 ========== */
 .article-detail-overlay{
     position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0);
@@ -374,7 +382,7 @@ a, button, .btn, .card, .article-card, .card-item, .file-item,
 .wallpaper-card, .emoji-card, .clickable, [onclick],
 .nav-item-wrapper a, .custom-dropdown a, .lang-dropdown a,
 .submenu-item a, .submenu-list a, .mode-btn, .control-btn,
-#backToTopBtn, #downloadBtn, #speedLabel, .tools-panel .tool-item, .tools-panel .setting-btn {
+#backToTopBtn, #downloadBtn, #speedLabel, .more-panel a, .more-panel .setting-btn {
     cursor: url('img/zhengchang_luoxiaohei.gif') 16 16, pointer;
 }
 input[type="text"], input[type="search"], input[type="password"],
