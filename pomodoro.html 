@@ -12,7 +12,6 @@
         .time { font-size:4rem; font-weight:700; font-family:monospace; color:#66ccff; text-shadow:0 0 10px rgba(102,204,255,0.3); }
         .btn { background:rgba(27,37,55,0.7); border:1px solid #39C5BB; color:#66ccff; padding:8px 16px; border-radius:8px; cursor:pointer; margin:5px; }
         .btn:hover { background:rgba(57,197,187,0.3); color:white; }
-        .btn.active { background:#39C5BB; color:#0a111c; }
         .status { font-size:0.85rem; color:#bbd4ff; margin:10px 0; }
         input { width:60px; background:#1e2a3c; border:1px solid #39C5BB; color:#fff; border-radius:6px; text-align:center; padding:4px; }
     </style>
