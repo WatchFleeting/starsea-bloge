@@ -99,8 +99,6 @@ function toggleTheme() {
 function updateThemeButtons() {
     const cur = document.documentElement.getAttribute('data-theme');
     const label = cur === 'dark' ? (i18nData?.['theme_light']||'亮色') : (i18nData?.['theme_dark']||'暗色');
-    const ml = document.getElementById('themeMobileLight'), md = document.getElementById('themeMobileDark');
-    if (ml && md) { ml.style.fontWeight = cur === 'light' ? 'bold' : 'normal'; md.style.fontWeight = cur === 'dark' ? 'bold' : 'normal'; }
     const themeBtn = document.getElementById('panelThemeBtn');
     if (themeBtn) themeBtn.textContent = label;
 }
@@ -120,9 +118,6 @@ function switchColor(colorName) {
 }
 function updateColorButtons() {
     const cur = document.documentElement.getAttribute('data-color-theme');
-    document.querySelectorAll('.color-option').forEach(el => {
-        el.style.fontWeight = el.getAttribute('data-color') === cur ? 'bold' : 'normal';
-    });
     const colorBtn = document.getElementById('panelColorBtn');
     if (colorBtn) {
         const opt = COLOR_OPTIONS.find(c => c.key === cur);
@@ -141,8 +136,9 @@ function updateSettingButtons() {
     }
 }
 
-/* ================= 导航交互（防闪退版） ================= */
+/* ================= 导航菜单（全新防闪退逻辑） ================= */
 let morePanel = null;
+let hideTimer = null;                // 全局延迟关闭计时器
 
 function createMorePanel() {
     if (morePanel) return;
@@ -169,17 +165,17 @@ function createMorePanel() {
     `;
     document.body.appendChild(morePanel);
 
-    // 阻止面板内所有点击事件冒泡到文档（防止移动端误关闭）
+    // 阻止面板内部点击冒泡，防止移动端点击后误关闭
     morePanel.addEventListener('click', (e) => e.stopPropagation());
 
-    // 工具事件（点击后关闭面板）
-    document.getElementById('panelPlayer').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('playerToggleBtn')?.click(); hideMorePanel(); });
-    document.getElementById('panelPomodoro').addEventListener('click', (e) => { e.preventDefault(); togglePomodoro(); hideMorePanel(); });
-    document.getElementById('panelDrink').addEventListener('click', (e) => { e.preventDefault(); toggleDrink(); hideMorePanel(); });
-    document.getElementById('panelNotes').addEventListener('click', (e) => { e.preventDefault(); toggleNotes(); hideMorePanel(); });
-    document.getElementById('panelDice').addEventListener('click', (e) => { e.preventDefault(); toggleDice(); hideMorePanel(); });
+    // 工具事件（点击后主动关闭面板）
+    document.getElementById('panelPlayer').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('playerToggleBtn')?.click(); closeMorePanel(); });
+    document.getElementById('panelPomodoro').addEventListener('click', (e) => { e.preventDefault(); togglePomodoro(); closeMorePanel(); });
+    document.getElementById('panelDrink').addEventListener('click', (e) => { e.preventDefault(); toggleDrink(); closeMorePanel(); });
+    document.getElementById('panelNotes').addEventListener('click', (e) => { e.preventDefault(); toggleNotes(); closeMorePanel(); });
+    document.getElementById('panelDice').addEventListener('click', (e) => { e.preventDefault(); toggleDice(); closeMorePanel(); });
 
-    // 设置下拉菜单（带定位和阻止关闭）
+    // 设置下拉菜单
     setupSettingDropdown('panelThemeBtn', [
         { text:'亮色', action:()=>{ if (document.documentElement.getAttribute('data-theme') === 'dark') toggleTheme(); } },
         { text:'暗色', action:()=>{ if (document.documentElement.getAttribute('data-theme') !== 'dark') toggleTheme(); } }
@@ -188,6 +184,14 @@ function createMorePanel() {
     setupSettingDropdown('panelLangBtn', SUPPORTED_LANGS.map(l => ({ text: l.name, action: ()=> switchLanguage(l.code) })));
 
     updateSettingButtons();
+
+    // 为面板自身绑定悬停保持（桌面端关键）
+    morePanel.addEventListener('mouseenter', () => {
+        clearTimeout(hideTimer);
+    });
+    morePanel.addEventListener('mouseleave', () => {
+        hideTimer = setTimeout(closeMorePanel, 200);
+    });
 }
 
 function setupSettingDropdown(btnId, items) {
@@ -199,6 +203,10 @@ function setupSettingDropdown(btnId, items) {
     dropdown.innerHTML = items.map(item => `<a href="#">${item.text}</a>`).join('');
     document.body.appendChild(dropdown);
 
+    // 下拉菜单悬停保持
+    dropdown.addEventListener('mouseenter', () => clearTimeout(hideTimer));
+    dropdown.addEventListener('mouseleave', () => { hideTimer = setTimeout(closeMorePanel, 200); });
+
     function positionDropdown() {
         const rect = btn.getBoundingClientRect();
         dropdown.style.left = Math.min(rect.left, innerWidth - dropdown.offsetWidth - 10) + 'px';
@@ -206,7 +214,7 @@ function setupSettingDropdown(btnId, items) {
     }
 
     btn.addEventListener('click', (e) => {
-        e.stopPropagation();                // 防止触发面板内部的关闭逻辑
+        e.stopPropagation();
         positionDropdown();
         document.querySelectorAll('.setting-dropdown.show').forEach(d => {
             if (d !== dropdown) d.classList.remove('show');
@@ -222,13 +230,15 @@ function setupSettingDropdown(btnId, items) {
         });
     });
 
-    // 点击外部关闭下拉菜单
-    document.addEventListener('click', () => {
-        dropdown.classList.remove('show');
+    // 点击外部关闭下拉
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target) && e.target !== btn) {
+            dropdown.classList.remove('show');
+        }
     });
 }
 
-function showMorePanel() {
+function openMorePanel() {
     if (!morePanel) createMorePanel();
     const btn = document.getElementById('moreBtn');
     if (!btn) return;
@@ -236,9 +246,10 @@ function showMorePanel() {
     morePanel.style.left = Math.min(rect.right - morePanel.offsetWidth, innerWidth - morePanel.offsetWidth - 10) + 'px';
     morePanel.style.top = rect.bottom + 8 + 'px';
     morePanel.classList.add('show');
+    clearTimeout(hideTimer);
 }
 
-function hideMorePanel() {
+function closeMorePanel() {
     if (morePanel) morePanel.classList.remove('show');
     document.querySelectorAll('.setting-dropdown.show').forEach(d => d.classList.remove('show'));
 }
@@ -258,43 +269,33 @@ function initNavigation() {
     const moreBtn = document.getElementById('moreBtn');
     if (!moreBtn) return;
 
-    let isOpen = false;
-    const show = () => { if (!morePanel) createMorePanel(); showMorePanel(); isOpen = true; };
-    const hide = () => { hideMorePanel(); isOpen = false; };
-
-    // 根据屏幕宽度采用不同的交互方式
-    if (window.innerWidth <= 700) {
-        // 移动端：点击“更多”按钮切换面板
+    // 桌面端：悬停控制
+    if (window.innerWidth > 700) {
+        moreBtn.addEventListener('mouseenter', () => {
+            clearTimeout(hideTimer);
+            openMorePanel();
+        });
+        moreBtn.addEventListener('mouseleave', () => {
+            hideTimer = setTimeout(closeMorePanel, 200);
+        });
+    }
+    // 移动端：点击切换
+    else {
         moreBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            isOpen ? hide() : show();
-        });
-        // 点击文档空白处关闭面板（面板内点击已通过 stopPropagation 阻止冒泡，不会触发此事件）
-        document.addEventListener('click', (e) => {
-            if (isOpen && !morePanel.contains(e.target) && !moreBtn.contains(e.target)) {
-                hide();
+            if (morePanel && morePanel.classList.contains('show')) {
+                closeMorePanel();
+            } else {
+                openMorePanel();
             }
         });
-    } else {
-        // 桌面端：仅使用悬停（移除点击，避免闪退）
-        let timer;
-        moreBtn.addEventListener('mouseenter', () => {
-            clearTimeout(timer);
-            show();
-        });
-        moreBtn.addEventListener('mouseleave', () => {
-            timer = setTimeout(hide, 150);
-        });
-        // 鼠标进入面板时取消隐藏计时
-        if (morePanel) {
-            morePanel.addEventListener('mouseenter', () => clearTimeout(timer));
-            morePanel.addEventListener('mouseleave', () => { timer = setTimeout(hide, 150); });
-        }
-        // 鼠标进入设置下拉菜单时也保持面板
-        document.querySelectorAll('.setting-dropdown').forEach(d => {
-            d.addEventListener('mouseenter', () => clearTimeout(timer));
-            d.addEventListener('mouseleave', () => { timer = setTimeout(hide, 150); });
+        // 点击外部关闭
+        document.addEventListener('click', (e) => {
+            if (morePanel && morePanel.classList.contains('show') &&
+                !morePanel.contains(e.target) && e.target !== moreBtn && !moreBtn.contains(e.target)) {
+                closeMorePanel();
+            }
         });
     }
 
