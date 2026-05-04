@@ -61,27 +61,19 @@
 
 🎨 自定义
 
-· 更换头像与个人信息：编辑 index.html 中的 Bilibili UID 或直接修改静态文字。
-
-· 修改颜色主题：在 common.css 的 :root 与 [data-color-theme] 规则中调整色值。
-
-· 添加 / 修改文章：在 data/ 目录中放置 .md 文件，并在 data-index.json 中注册。
-
-· 切换数据源为 WebOS：编辑 data/webos-config.json，填入你的直链基础地址和分享标识即可。
-
-· 添加新语言：在 lang/ 中新增 JSON，并在 common.js 的 SUPPORTED_LANGS 数组中注册。
+- 更换头像与个人信息：编辑 index.html 中的 Bilibili UID 或直接修改静态文字。
+- 修改颜色主题：在 common.css 的 :root 与 [data-color-theme] 规则中调整色值。
+- 添加 / 修改文章：在 data/ 目录中放置 .md 文件，并在 data-index.json 中注册。
+- 切换数据源为 WebOS：编辑 data/webos-config.json，填入你的直链基础地址和分享标识即可。
+- 添加新语言：在 lang/ 中新增 JSON，并在 common.js 的 SUPPORTED_LANGS 数组中注册。
 
 💻 技术栈
 
-· 纯静态前端：HTML5 + CSS3 + JavaScript (ES2020+)
-
-· UI 框架：无第三方框架，全部手写
-
-· 图标库：Font Awesome 6 (CDN)
-
-· 字体：Inter (Google Fonts)
-
-· 部署：GitHub Pages / Cloudflare Pages / 任何静态托管
+- 纯静态前端：HTML5 + CSS3 + JavaScript (ES2020+)
+- UI 框架：无第三方框架，全部手写
+- 图标库：Font Awesome 6 (CDN)
+- 字体：Inter (Google Fonts)
+- 部署：GitHub Pages / Cloudflare Pages / 任何静态托管
 
 📄 许可
 
@@ -89,8 +81,6 @@
 
 💬 联系作者
 
-· B 站：https://space.bilibili.com/3493109964999279
-
-· GitHub：https://github.com/WatchFleeting
-
-· 邮箱：lzc737507@outlook.com
+- B 站：https://space.bilibili.com/3493109964999279
+- GitHub：https://github.com/WatchFleeting
+- 邮箱：lzc737507@outlook.com
