@@ -51,6 +51,14 @@ const SUPPORTED_LANGS = [
     { code:'ja', name:'日本語' },
     { code:'ko', name:'한국어' }
 ];
+const COLOR_OPTIONS = [
+    { key:'default', name:'青蓝' },
+    { key:'purple', name:'紫罗兰' },
+    { key:'mint', name:'薄荷绿' },
+    { key:'sunset', name:'落日橙' },
+    { key:'sakura', name:'樱花粉' }
+];
+
 let currentLang = localStorage.getItem('lang') || 'zh';
 let i18nData = null;
 async function loadLanguage(lang) {
@@ -62,6 +70,7 @@ async function loadLanguage(lang) {
         currentLang = lang;
         updateLangButtons();
         updateThemeButtons();
+        updateSettingButtons();
     } catch(e) { console.warn('语言文件加载失败', e); }
 }
 function applyTranslations() {
@@ -80,7 +89,6 @@ function updateLangButtons() {
     });
 }
 async function switchLanguage(langCode) { if (langCode !== currentLang) await loadLanguage(langCode); }
-function toggleMobileSubmenu(id) { const el = document.getElementById(id); if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block'; }
 
 /* 明暗主题 */
 function initTheme() { const saved = localStorage.getItem('theme') || 'light'; document.documentElement.setAttribute('data-theme', saved); updateThemeButtons(); }
@@ -90,12 +98,15 @@ function toggleTheme() {
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('theme', next);
     updateThemeButtons();
+    updateSettingButtons();
 }
 function updateThemeButtons() {
     const cur = document.documentElement.getAttribute('data-theme');
     const label = cur === 'dark' ? (i18nData?.['theme_light']||'亮色') : (i18nData?.['theme_dark']||'暗色');
     const ml = document.getElementById('themeMobileLight'), md = document.getElementById('themeMobileDark');
     if (ml && md) { ml.style.fontWeight = cur === 'light' ? 'bold' : 'normal'; md.style.fontWeight = cur === 'dark' ? 'bold' : 'normal'; }
+    const themeBtn = document.getElementById('panelThemeBtn');
+    if (themeBtn) themeBtn.textContent = label;
 }
 
 /* 多色主题 */
@@ -103,17 +114,35 @@ function initColorTheme() {
     const saved = localStorage.getItem('colorTheme') || 'default';
     document.documentElement.setAttribute('data-color-theme', saved);
     updateColorButtons();
+    updateSettingButtons();
 }
 function switchColor(colorName) {
     document.documentElement.setAttribute('data-color-theme', colorName);
     localStorage.setItem('colorTheme', colorName);
     updateColorButtons();
+    updateSettingButtons();
 }
 function updateColorButtons() {
     const cur = document.documentElement.getAttribute('data-color-theme');
     document.querySelectorAll('.color-option').forEach(el => {
         el.style.fontWeight = el.getAttribute('data-color') === cur ? 'bold' : 'normal';
     });
+    const colorBtn = document.getElementById('panelColorBtn');
+    if (colorBtn) {
+        const opt = COLOR_OPTIONS.find(c => c.key === cur);
+        colorBtn.textContent = opt ? opt.name : '颜色';
+    }
+}
+
+/* 更新设置按钮文字 */
+function updateSettingButtons() {
+    updateThemeButtons();
+    updateColorButtons();
+    const langBtn = document.getElementById('panelLangBtn');
+    if (langBtn) {
+        const lang = SUPPORTED_LANGS.find(l => l.code === currentLang);
+        langBtn.textContent = lang ? lang.name : '语言';
+    }
 }
 
 /* ================= 导航交互（重构版） ================= */
@@ -136,31 +165,75 @@ function createMorePanel() {
         <a href="#" id="panelNotes">便签</a>
         <a href="#" id="panelDice">骰子</a>
         <div class="setting-row">
-            <button class="setting-btn" id="panelThemeToggle">亮色/暗色</button>
-            <button class="setting-btn" id="panelColorNext">切换颜色</button>
-            <button class="setting-btn" id="panelLangNext">切换语言</button>
+            <button class="setting-btn" id="panelThemeBtn">亮色</button>
+            <button class="setting-btn" id="panelColorBtn">青蓝</button>
+            <button class="setting-btn" id="panelLangBtn">中文</button>
         </div>
     `;
     document.body.appendChild(morePanel);
 
+    // 工具事件
     document.getElementById('panelPomodoro').addEventListener('click', (e) => { e.preventDefault(); togglePomodoro(); hideMorePanel(); });
     document.getElementById('panelDrink').addEventListener('click', (e) => { e.preventDefault(); toggleDrink(); hideMorePanel(); });
     document.getElementById('panelNotes').addEventListener('click', (e) => { e.preventDefault(); toggleNotes(); hideMorePanel(); });
     document.getElementById('panelDice').addEventListener('click', (e) => { e.preventDefault(); toggleDice(); hideMorePanel(); });
 
-    document.getElementById('panelThemeToggle').addEventListener('click', toggleTheme);
-    document.getElementById('panelColorNext').addEventListener('click', () => {
-        const colors = ['default', 'purple', 'mint', 'sunset', 'sakura'];
-        const cur = document.documentElement.getAttribute('data-color-theme') || 'default';
-        const idx = colors.indexOf(cur);
-        const next = colors[(idx + 1) % colors.length];
-        switchColor(next);
+    // 设置按钮事件：显示下拉菜单
+    setupSettingDropdown('panelThemeBtn', [
+        { text: '亮色', action: () => { if (document.documentElement.getAttribute('data-theme') === 'dark') toggleTheme(); } },
+        { text: '暗色', action: () => { if (document.documentElement.getAttribute('data-theme') !== 'dark') toggleTheme(); } }
+    ]);
+
+    setupSettingDropdown('panelColorBtn', COLOR_OPTIONS.map(c => ({
+        text: c.name,
+        action: () => switchColor(c.key)
+    })));
+
+    setupSettingDropdown('panelLangBtn', SUPPORTED_LANGS.map(l => ({
+        text: l.name,
+        action: () => switchLanguage(l.code)
+    })));
+
+    // 初始化按钮文字
+    updateSettingButtons();
+}
+
+function setupSettingDropdown(btnId, items) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    const dropdown = document.createElement('div');
+    dropdown.className = 'setting-dropdown';
+    dropdown.id = btnId + 'Dropdown';
+    dropdown.innerHTML = items.map(item => `<a href="#">${item.text}</a>`).join('');
+    document.body.appendChild(dropdown);
+
+    // 让下拉菜单相对于按钮定位
+    function positionDropdown() {
+        const rect = btn.getBoundingClientRect();
+        dropdown.style.left = Math.min(rect.left, innerWidth - dropdown.offsetWidth - 10) + 'px';
+        dropdown.style.top = rect.bottom + 4 + 'px';
+    }
+
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        positionDropdown();
+        // 关闭其他下拉
+        document.querySelectorAll('.setting-dropdown.show').forEach(d => {
+            if (d !== dropdown) d.classList.remove('show');
+        });
+        dropdown.classList.toggle('show');
     });
-    document.getElementById('panelLangNext').addEventListener('click', () => {
-        const langs = SUPPORTED_LANGS.map(l => l.code);
-        const idx = langs.indexOf(currentLang);
-        const next = langs[(idx + 1) % langs.length];
-        switchLanguage(next);
+
+    dropdown.querySelectorAll('a').forEach((a, i) => {
+        a.addEventListener('click', (e) => {
+            e.preventDefault();
+            items[i].action();
+            dropdown.classList.remove('show');
+        });
+    });
+
+    document.addEventListener('click', () => {
+        dropdown.classList.remove('show');
     });
 }
 
@@ -176,6 +249,8 @@ function showMorePanel() {
 
 function hideMorePanel() {
     if (morePanel) morePanel.classList.remove('show');
+    // 关闭所有设置下拉
+    document.querySelectorAll('.setting-dropdown.show').forEach(d => d.classList.remove('show'));
 }
 
 function initNavigation() {
@@ -214,16 +289,8 @@ function initNavigation() {
         moreBtn.addEventListener('mouseleave', () => { timer = setTimeout(hide, 200); });
         moreBtn.addEventListener('click', (e) => { e.preventDefault(); isOpen ? hide() : show(); });
         // 面板自身悬停保持
-        document.addEventListener('mouseover', (e) => {
-            if (morePanel && morePanel.contains(e.target)) {
-                clearTimeout(timer);
-            }
-        });
-        document.addEventListener('mouseout', (e) => {
-            if (morePanel && !morePanel.contains(e.relatedTarget) && !moreBtn.contains(e.relatedTarget)) {
-                timer = setTimeout(hide, 200);
-            }
-        });
+        morePanel?.addEventListener('mouseenter', () => clearTimeout(timer));
+        morePanel?.addEventListener('mouseleave', () => { timer = setTimeout(hide, 200); });
     }
 
     const backBtn = document.getElementById('backToTopBtn');
